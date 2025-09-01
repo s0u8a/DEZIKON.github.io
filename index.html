@@ -2,42 +2,20 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>新潟RPG</title>
-  <link rel="stylesheet" href="style/style.css">
+  <title>🌾 新潟RPG デモ版</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>新潟RPG</h1>
-  <div id="game">
-    <canvas id="gameCanvas" width="512" height="512"></canvas>
-    <div id="ui">
-      <div id="playerHP">HP: ♡♡♡</div>
-      <div id="enemyHP">敵HP: </div>
-      <div id="message"></div>
-    </div>
-  </div>
+  <h1>🌸 新潟RPG デモ版</h1>
+  <p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
 
-  <script type="module">
-    import { initMap, drawMap } from './js/map.js';
-    import { player, movePlayer } from './js/player.js';
-    import { enemies, checkEnemyCollision } from './js/enemy.js';
-    import { updatePlayerHP, updateEnemyHP, showMessage } from './js/ui.js';
-    import { checkEnding } from './js/ending.js';
+  <!-- ゲーム画面 -->
+  <canvas id="gameCanvas" width="480" height="320"></canvas>
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+  <!-- メッセージ表示領域 -->
+  <div id="messageBox"></div>
 
-    initMap();
-    drawMap(ctx);
-    updatePlayerHP();
-    updateEnemyHP();
-
-    document.addEventListener('keydown', (e) => {
-      movePlayer(e.key);
-      drawMap(ctx);
-      updatePlayerHP();
-      updateEnemyHP();
-      checkEnding();
-    });
-  </script>
+  <!-- ゲーム用スクリプト -->
+  <script src="main.js"></script>
 </body>
 </html>
