@@ -10,9 +10,11 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
 
-// ✅ マップサイズに合わせてキャンバスを調整
-canvas.width = COLS * TILE;
-canvas.height = ROWS * TILE;
+// 表示領域（見える範囲）
+const VIEW_COLS = 10; // 横に何マス表示するか
+const VIEW_ROWS = 8;  // 縦に何マス表示するか
+canvas.width = VIEW_COLS * TILE;
+canvas.height = VIEW_ROWS * TILE;
 
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
@@ -45,8 +47,6 @@ for (let y = 0; y < ROWS; y++) {
 function loadImage(src) {
   const img = new Image();
   img.src = src;
-  img.onload = () => setStatus(`✅ loaded: ${src}`);
-  img.onerror = () => setStatus(`❌ error: ${src}`);
   return img;
 }
 
@@ -141,52 +141,49 @@ function drawLifeGauge() {
 }
 
 // -----------------------------
-// 描画
+// 描画（スクロール対応）
 // -----------------------------
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // マップタイル
-  for (let y = 0; y < ROWS; y++) {
-    for (let x = 0; x < COLS; x++) {
-      const t = GRID[y][x];
+  // プレイヤー中心に表示範囲を決定
+  let offsetX = player.x - Math.floor(VIEW_COLS / 2);
+  let offsetY = player.y - Math.floor(VIEW_ROWS / 2);
+
+  // 範囲外に出ないように調整
+  offsetX = Math.max(0, Math.min(offsetX, COLS - VIEW_COLS));
+  offsetY = Math.max(0, Math.min(offsetY, ROWS - VIEW_ROWS));
+
+  // マップ描画
+  for (let y = 0; y < VIEW_ROWS; y++) {
+    for (let x = 0; x < VIEW_COLS; x++) {
+      const mapX = x + offsetX;
+      const mapY = y + offsetY;
+      if (mapX < 0 || mapX >= COLS || mapY < 0 || mapY >= ROWS) continue;
+
+      const t = GRID[mapY][mapX];
       const dx = x * TILE, dy = y * TILE;
 
-      // 床は常に敷く
-      if (images.floor.complete && images.floor.naturalWidth) {
-        ctx.drawImage(images.floor, dx, dy, TILE, TILE);
-      } else {
-        ctx.fillStyle = '#cfeec0';
-        ctx.fillRect(dx, dy, TILE, TILE);
-      }
+      // 床
+      ctx.drawImage(images.floor, dx, dy, TILE, TILE);
 
       // タイルごとの上書き
-      if (t === '#') {
-        ctx.drawImage(images.wall, dx, dy, TILE, TILE);
-      } else if (t === 'E') {
-        ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
-      } else if (t === 'I') {
-        ctx.drawImage(images.item, dx, dy, TILE, TILE);
-      } else if (t === 'A') {
-        ctx.drawImage(images.ally, dx, dy, TILE, TILE);
-      } else if (t === 'G') {
-        ctx.drawImage(images.goal, dx, dy, TILE, TILE);
-      }
+      if (t === '#') ctx.drawImage(images.wall, dx, dy, TILE, TILE);
+      else if (t === 'E') ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
+      else if (t === 'I') ctx.drawImage(images.item, dx, dy, TILE, TILE);
+      else if (t === 'A') ctx.drawImage(images.ally, dx, dy, TILE, TILE);
+      else if (t === 'G') ctx.drawImage(images.goal, dx, dy, TILE, TILE);
     }
   }
 
-  // プレイヤー
-  const dx = player.x * TILE, dy = player.y * TILE;
-  if (images.pl.complete && images.pl.naturalWidth) {
-    ctx.drawImage(images.pl, dx, dy, TILE, TILE);
-  } else {
-    ctx.fillStyle = '#2b8a3e';
-    ctx.fillRect(dx + 8, dy + 8, TILE - 16, TILE - 16);
-  }
+  // プレイヤー描画（画面上の位置）
+  const px = (player.x - offsetX) * TILE;
+  const py = (player.y - offsetY) * TILE;
+  ctx.drawImage(images.pl, px, py, TILE, TILE);
 
   // HPライフゲージ
   drawLifeGauge();
 }
 
-setStatus('画像読み込み中…');
-draw(); // 最初に1回描画
+setStatus('✅ ゲーム開始');
+draw();
