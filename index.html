@@ -9,12 +9,12 @@
   <h1>🌸 新潟RPG デモ版</h1>
   <p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
 
-  <!-- キャンバスとステータス（※idはJSと一致させる） -->
   <canvas id="gameCanvas" width="512" height="512"></canvas>
   <div id="status" aria-live="polite"></div>
 
-  <!-- 非モジュール。依存順に読み込む（map → main） -->
+  <!-- 非モジュール。必ず map.js → main.js の順で、両方とも defer -->
   <script src="./script/map.js" defer></script>
   <script src="./script/main.js" defer></script>
 </body>
 </html>
+
