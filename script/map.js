@@ -1,154 +1,79 @@
-// script/map.js
-(function(){
-  const TILE = 64;
+// ===== 田んぼデモ（背景＋プレイヤー移動）=====
 
-  // ステージ定義（grid: 文字タイル）
-  const STAGES = {
-    tanbo: {
-      name: "田んぼ",
-      bg: "./assets/images/tanbo.png",
-      grid: [
-        "############",
-        "#S0000000E0#",
-        "#0##0000000#",
-        "#0000##0000#",
-        "#0000000000#",
-        "#00I0000000#",
-        "#000000E000#",
-        "#000000000G#",
-        "############",
-        "############",
-        "############",
-        "############",
-      ]
-    },
-    shinano: {
-      name: "信濃川",
-      bg: "./assets/images/tanbo2.png",
-      grid: [
-        "############",
-        "#S000000000#",
-        "#000##00000#",
-        "#0000#00000#",
-        "#0000#000E0#",
-        "#0000#00000#",
-        "#00I0#00000#",
-        "#0000#0000G#",
-        "############",
-        "############",
-        "############",
-        "############",
-      ]
-    },
-    sado: {
-      name: "佐渡島",
-      bg: "./assets/images/tanbo.png",
-      grid: [
-        "############",
-        "#S000000000#",
-        "#0E0#000000#",
-        "#000#00I000#",
-        "#000#000000#",
-        "#000#000000#",
-        "#000#000000#",
-        "#000#0000G0#",
-        "############",
-        "############",
-        "############",
-        "############",
-      ]
-    },
-    hanabi: {
-      name: "花火会場（ラス）",
-      bg: "./assets/images/tanbo2.png",
-      grid: [
-        "############",
-        "#S000000000#",
-        "#0000000000#",
-        "#00000E0000#",
-        "#0000000000#",
-        "#0000000000#",
-        "#0000I00000#",
-        "#000000000G#",
-        "############",
-        "############",
-        "############",
-        "############",
-      ]
-    }
-  };
+const TILE_SIZE = 64;    // タイル1マスの大きさ
+const MAP_COLS = 12;     // 横のマス数
+const MAP_ROWS = 12;     // 縦のマス数
 
-  function toMatrix(arr){ return arr.map(r => r.split("")); }
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const statusEl = document.getElementById("status");
 
-  const state = {
-    tile: TILE,
-    stageId: "tanbo",
-    stage: null,
-    grid: null,
-    bgImg: null,
-    bgOK: false,
-    cols: 0, rows: 0,
-  };
+function setStatus(msg) {
+  statusEl.textContent = msg;
+  console.log(msg);
+}
 
-  function loadStage(id){
-    state.stageId = id;
-    state.stage   = STAGES[id];
-    state.grid    = toMatrix(state.stage.grid);
-    state.rows    = state.grid.length;
-    state.cols    = state.grid[0].length;
+// 画像ロード関数
+function loadImage(src, label) {
+  const img = new Image();
+  img.onload = () => setStatus(`✅ loaded: ${label} → ${src}`);
+  img.onerror = () => setStatus(`❌ error: ${label} 読み込み失敗 → ${src}`);
+  img.src = src;
+  return img;
+}
 
-    state.bgImg = new Image();
-    state.bgOK = false;
-    state.bgImg.onload  = ()=> state.bgOK = true;
-    state.bgImg.onerror = ()=> state.bgOK = false;
-    state.bgImg.src = state.stage.bg;
+// 画像のロード（assets/images/ 内）
+const images = {
+  background: loadImage("./assets/images/tanbo2.png", "background"),
+  player:     loadImage("./assets/images/noumin.png", "player"),
+};
+
+// プレイヤーの初期位置
+const player = { x: 2, y: 2 };
+
+// キー操作
+window.addEventListener("keydown", (e) => {
+  let handled = true;
+  switch (e.key) {
+    case "ArrowUp":    player.y = Math.max(0, player.y - 1); break;
+    case "ArrowDown":  player.y = Math.min(MAP_ROWS - 1, player.y + 1); break;
+    case "ArrowLeft":  player.x = Math.max(0, player.x - 1); break;
+    case "ArrowRight": player.x = Math.min(MAP_COLS - 1, player.x + 1); break;
+    default: handled = false;
+  }
+  if (handled) e.preventDefault();
+});
+
+// 描画ループ
+function draw() {
+  // 背景画像を拡大描画
+  if (images.background.complete && images.background.naturalWidth > 0) {
+    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = "#d0f0c0";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  function draw(ctx, canvas){
-    // 背景
-    if (state.bgOK) {
-      ctx.drawImage(state.bgImg, 0, 0, canvas.width, canvas.height);
-    } else {
-      ctx.fillStyle = "#cfeec0";
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-    }
-    // 壁＆グリッド
-    for (let y=0; y<state.rows; y++){
-      for (let x=0; x<state.cols; x++){
-        if (state.grid[y][x] === "#"){
-          ctx.fillStyle="#556b2f";
-          ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-        }
-        ctx.strokeStyle="rgba(0,0,0,.06)";
-        ctx.strokeRect(x*TILE+.5, y*TILE+.5, TILE-1, TILE-1);
-      }
-    }
+  // プレイヤー
+  if (images.player.complete && images.player.naturalWidth > 0) {
+    ctx.drawImage(
+      images.player,
+      player.x * TILE_SIZE,
+      player.y * TILE_SIZE,
+      TILE_SIZE, TILE_SIZE
+    );
+  } else {
+    ctx.fillStyle = "#2b8a3e";
+    ctx.fillRect(
+      player.x * TILE_SIZE + 8,
+      player.y * TILE_SIZE + 8,
+      TILE_SIZE - 16,
+      TILE_SIZE - 16
+    );
   }
 
-  function getStart(){
-    for (let y=0;y<state.rows;y++){
-      for (let x=0;x<state.cols;x++){
-        if (state.grid[y][x] === "S") return {x,y};
-      }
-    }
-    return {x:1,y:1};
-  }
+  requestAnimationFrame(draw);
+}
 
-  function isWalkable(x,y){
-    return !(x<0||x>=state.cols||y<0||y>=state.rows) && state.grid[y][x] !== "#";
-  }
-  function getTile(x,y){
-    if (x<0||x>=state.cols||y<0||y>=state.rows) return null;
-    return state.grid[y][x];
-  }
-  function clearTile(x,y){ if(getTile(x,y)!==null){ state.grid[y][x]="0"; } }
-
-  // 公開
-  window.MapManager = {
-    loadStage, draw, getStart, isWalkable, getTile, clearTile,
-    TILE, STAGES, state
-  };
-
-  // 初期ステージ
-  loadStage("tanbo");
-})();
+draw();
+setStatus("画像を読み込み中… ./assets/images/tanbo2.png, ./assets/images/noumin.png");
