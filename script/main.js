@@ -1,10 +1,3 @@
-// -----------------------------
-// スクロール対応版（要素を一部変更）
-// - 高DPI対応
-// - 画像ロード待ち
-// - フォールバック描画
-// - WASD対応 & フォーカス安定
-// -----------------------------
 (() => {
   // -----------------------------
   // 定数・初期設定
@@ -18,9 +11,10 @@
   const ctx = canvas.getContext('2d');
   const statusEl = document.getElementById('status');
 
-  // 表示範囲（スクロール用）
-  const VIEW_COLS = 10; // 横に何マス表示するか
-  const VIEW_ROWS = 8;  // 縦に何マス表示するか
+  const VIEW_COLS = 10; // 横表示マス数
+  const VIEW_ROWS = 8;  // 縦表示マス数
+
+  const DPR = Math.max(1, window.devicePixelRatio || 1);
 
   function setStatus(msg) {
     if (statusEl) statusEl.textContent = msg;
@@ -35,7 +29,6 @@
   // -----------------------------
   // 高DPI対応
   // -----------------------------
-  const DPR = Math.max(1, window.devicePixelRatio || 1);
   function resizeCanvas() {
     const cssW = VIEW_COLS * TILE;
     const cssH = VIEW_ROWS * TILE;
@@ -43,21 +36,15 @@
     canvas.style.height = cssH + 'px';
     canvas.width = Math.floor(cssW * DPR);
     canvas.height = Math.floor(cssH * DPR);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // 以後の描画はCSS座標でOK
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
   resizeCanvas();
 
   // -----------------------------
   // プレイヤー情報
   // -----------------------------
-  const player = {
-    x: 1,
-    y: 1,
-    hearts: 3,
-    maxHearts: 3
-  };
+  const player = { x: 1, y: 1, hearts: 3, maxHearts: 3 };
 
-  // スタート位置(S)があれば設定
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
       if (GRID[y][x] === 'S') {
@@ -68,32 +55,30 @@
   }
 
   // -----------------------------
-  // 画像読み込み（Promise化 & フォールバック）
+  // 画像読み込み
   // -----------------------------
   function loadImage(src) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const img = new Image();
-      // 別ドメインなら CORS: img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
-      img.onerror = () => resolve(null); // 失敗でもnullを返す
+      img.onerror = () => resolve(null);
       img.src = src;
     });
   }
 
   const imagePaths = {
-    floor: './assets/images/tanbo.png',  // 床
-    wall: './assets/images/wall.png',    // 壁
-    enemy: './assets/images/enemy.png',  // 敵
-    item: './assets/images/item.png',    // アイテム
-    ally: './assets/images/ally.png',    // 味方
-    goal: './assets/images/goal.png',    // ゴール
-    pl: './assets/images/noumin.png'     // プレイヤー
+    floor: './assets/images/tanbo.png',
+    wall: './assets/images/wall.png',
+    enemy: './assets/images/enemy.png',
+    item: './assets/images/item.png',
+    ally: './assets/images/ally.png',
+    goal: './assets/images/goal.png',
+    pl: './assets/images/noumin.png'
   };
   const images = {};
 
   async function loadAllImages() {
-    const keys = Object.keys(imagePaths);
-    await Promise.all(keys.map(async k => {
+    await Promise.all(Object.keys(imagePaths).map(async k => {
       images[k] = await loadImage(imagePaths[k]);
       setStatus(`${images[k] ? '✅' : '❌'} ${imagePaths[k]}`);
     }));
@@ -103,12 +88,8 @@
   // 描画ヘルパ
   // -----------------------------
   function drawSprite(img, dx, dy, size, fallback) {
-    if (img && img.naturalWidth > 0) {
-      ctx.drawImage(img, dx, dy, size, size);
-    } else if (fallback) {
-      ctx.fillStyle = fallback;
-      ctx.fillRect(dx, dy, size, size);
-    }
+    if (img && img.naturalWidth > 0) ctx.drawImage(img, dx, dy, size, size);
+    else if (fallback) { ctx.fillStyle = fallback; ctx.fillRect(dx, dy, size, size); }
   }
 
   // -----------------------------
@@ -138,36 +119,24 @@
   // -----------------------------
   function onTile(x, y) {
     const t = GRID[y][x];
-    if (t === 'E') {
-      setStatus('👹 敵に遭遇！クイズへ…（仮）');
-      takeDamage(1);
-    } else if (t === 'I') {
-      setStatus('🎁 アイテムを取得！ハート+1');
-      heal(1);
-      GRID[y][x] = '0'; // アイテム消滅
-    } else if (t === 'A') {
-      setStatus('🤝 味方に会った！');
-    } else if (t === 'G') {
-      setStatus('🏁 ゴール！');
-    }
+    if (t === 'E') { setStatus('👹 敵に遭遇！'); takeDamage(1); }
+    else if (t === 'I') { setStatus('🎁 アイテム取得！'); heal(1); GRID[y][x]='0'; }
+    else if (t === 'A') setStatus('🤝 味方に会った！');
+    else if (t === 'G') setStatus('🏁 ゴール！');
   }
 
   // -----------------------------
-  // キー入力（WASD対応 & フォーカス）
+  // キー入力（WASD対応） window に登録
   // -----------------------------
-  if (!canvas.hasAttribute('tabindex')) canvas.setAttribute('tabindex', '0');
-  canvas.addEventListener('click', () => canvas.focus());
-  canvas.focus();
-
   window.addEventListener('keydown', e => {
     let nx = player.x, ny = player.y;
+    const k = e.key.toLowerCase();
     let handled = true;
 
-    const k = e.key;
-    if (k === 'ArrowUp' || k === 'w' || k === 'W') ny--;
-    else if (k === 'ArrowDown' || k === 's' || k === 'S') ny++;
-    else if (k === 'ArrowLeft' || k === 'a' || k === 'A') nx--;
-    else if (k === 'ArrowRight' || k === 'd' || k === 'D') nx++;
+    if (k === 'arrowup' || k === 'w') ny--;
+    else if (k === 'arrowdown' || k === 's') ny++;
+    else if (k === 'arrowleft' || k === 'a') nx--;
+    else if (k === 'arrowright' || k === 'd') nx++;
     else handled = false;
 
     if (handled) e.preventDefault();
@@ -184,13 +153,10 @@
   // ライフゲージ描画
   // -----------------------------
   function drawLifeGauge() {
-    const startX = 10;
-    const startY = 10;
-    const size = 16;
-    const gap = 4;
-    for (let i = 0; i < player.maxHearts; i++) {
-      ctx.fillStyle = (i < player.hearts) ? 'red' : 'gray';
-      ctx.fillRect(startX + i * (size + gap), startY, size, size);
+    const startX = 10, startY = 10, size = 16, gap = 4;
+    for (let i=0;i<player.maxHearts;i++){
+      ctx.fillStyle = (i<player.hearts) ? 'red':'gray';
+      ctx.fillRect(startX + i*(size+gap), startY, size, size);
     }
   }
 
@@ -198,64 +164,50 @@
   // 描画（スクロール対応）
   // -----------------------------
   function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // プレイヤー中心に表示範囲を決定
-    let offsetX = player.x - Math.floor(VIEW_COLS / 2);
-    let offsetY = player.y - Math.floor(VIEW_ROWS / 2);
+    let offsetX = player.x - Math.floor(VIEW_COLS/2);
+    let offsetY = player.y - Math.floor(VIEW_ROWS/2);
+    offsetX = Math.max(0, Math.min(offsetX, Math.max(0,COLS-VIEW_COLS)));
+    offsetY = Math.max(0, Math.min(offsetY, Math.max(0,ROWS-VIEW_ROWS)));
 
-    offsetX = Math.max(0, Math.min(offsetX, Math.max(0, COLS - VIEW_COLS)));
-    offsetY = Math.max(0, Math.min(offsetY, Math.max(0, ROWS - VIEW_ROWS)));
+    for(let y=0;y<VIEW_ROWS;y++){
+      for(let x=0;x<VIEW_COLS;x++){
+        const mapX=x+offsetX,mapY=y+offsetY;
+        if(mapX>=COLS||mapY>=ROWS) continue;
+        const t = GRID[mapY][mapX], dx=x*TILE, dy=y*TILE;
 
-    // マップ描画
-    for (let y = 0; y < VIEW_ROWS; y++) {
-      for (let x = 0; x < VIEW_COLS; x++) {
-        const mapX = x + offsetX;
-        const mapY = y + offsetY;
-        if (mapX >= COLS || mapY >= ROWS) continue;
+        drawSprite(images.floor, dx,dy,TILE,'#cfeec0');
 
-        const t = GRID[mapY][mapX];
-        const dx = x * TILE, dy = y * TILE;
-
-        // 床（フォールバック色：#cfeec0）
-        drawSprite(images.floor, dx, dy, TILE, '#cfeec0');
-
-        // 上書きタイル
-        if (t === '#')      drawSprite(images.wall,  dx, dy, TILE, '#556b2f');
-        else if (t === 'E') drawSprite(images.enemy, dx, dy, TILE, '#8b0000');
-        else if (t === 'I') drawSprite(images.item,  dx, dy, TILE, '#daa520');
-        else if (t === 'A') drawSprite(images.ally,  dx, dy, TILE, '#1e90ff');
-        else if (t === 'G') drawSprite(images.goal,  dx, dy, TILE, '#32cd32');
+        if(t==='E') drawSprite(images.enemy,dx,dy,TILE,'#8b0000');
+        else if(t==='I') drawSprite(images.item,dx,dy,TILE,'#daa520');
+        else if(t==='A') drawSprite(images.ally,dx,dy,TILE,'#1e90ff');
+        else if(t==='G') drawSprite(images.goal,dx,dy,TILE,'#32cd32');
+        else if(t==='#') drawSprite(images.wall,dx,dy,TILE,'#556b2f');
       }
     }
 
-    // プレイヤー描画（フォールバック：濃い緑）
-    const px = (player.x - offsetX) * TILE;
-    const py = (player.y - offsetY) * TILE;
-    drawSprite(images.pl, px, py, TILE, '#2b8a3e');
+    // プレイヤー描画
+    const px=(player.x-offsetX)*TILE, py=(player.y-offsetY)*TILE;
+    drawSprite(images.pl, px,py,TILE,'#2b8a3e');
 
-    // HPライフゲージ
     drawLifeGauge();
   }
 
   // -----------------------------
-  // 初期化：画像ロード後に初回描画
+  // 初期化
   // -----------------------------
-  async function init() {
+  async function init(){
     setStatus('画像読み込み中…');
     await loadAllImages();
     setStatus('準備完了！矢印キー/WASDで移動');
     draw();
   }
 
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    init();
-  } else {
-    window.addEventListener('DOMContentLoaded', init);
-  }
+  if(document.readyState==='complete'||document.readyState==='interactive') init();
+  else window.addEventListener('DOMContentLoaded', init);
 
-  // リサイズ時もにじみを防ぐ
-  window.addEventListener('resize', () => {
+  window.addEventListener('resize', ()=>{
     resizeCanvas();
     draw();
   });
