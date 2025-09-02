@@ -10,7 +10,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
 
-// 表示領域（見える範囲）
+// 表示範囲（スクロール用）
 const VIEW_COLS = 10; // 横に何マス表示するか
 const VIEW_ROWS = 8;  // 縦に何マス表示するか
 canvas.width = VIEW_COLS * TILE;
@@ -150,7 +150,6 @@ function draw() {
   let offsetX = player.x - Math.floor(VIEW_COLS / 2);
   let offsetY = player.y - Math.floor(VIEW_ROWS / 2);
 
-  // 範囲外に出ないように調整
   offsetX = Math.max(0, Math.min(offsetX, COLS - VIEW_COLS));
   offsetY = Math.max(0, Math.min(offsetY, ROWS - VIEW_ROWS));
 
@@ -159,7 +158,7 @@ function draw() {
     for (let x = 0; x < VIEW_COLS; x++) {
       const mapX = x + offsetX;
       const mapY = y + offsetY;
-      if (mapX < 0 || mapX >= COLS || mapY < 0 || mapY >= ROWS) continue;
+      if (mapX >= COLS || mapY >= ROWS) continue;
 
       const t = GRID[mapY][mapX];
       const dx = x * TILE, dy = y * TILE;
@@ -167,7 +166,7 @@ function draw() {
       // 床
       ctx.drawImage(images.floor, dx, dy, TILE, TILE);
 
-      // タイルごとの上書き
+      // 上書きタイル
       if (t === '#') ctx.drawImage(images.wall, dx, dy, TILE, TILE);
       else if (t === 'E') ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
       else if (t === 'I') ctx.drawImage(images.item, dx, dy, TILE, TILE);
@@ -176,7 +175,7 @@ function draw() {
     }
   }
 
-  // プレイヤー描画（画面上の位置）
+  // プレイヤー描画
   const px = (player.x - offsetX) * TILE;
   const py = (player.y - offsetY) * TILE;
   ctx.drawImage(images.pl, px, py, TILE, TILE);
@@ -185,5 +184,8 @@ function draw() {
   drawLifeGauge();
 }
 
+// -----------------------------
+// 初回描画
+// -----------------------------
 setStatus('✅ ゲーム開始');
 draw();
