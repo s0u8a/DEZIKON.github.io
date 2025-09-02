@@ -84,4 +84,4 @@
     MapManager.draw(ctx, canvas);
     Player.draw(ctx);
   }
-})();
+}();
