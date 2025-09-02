@@ -10,6 +10,10 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
 
+// ✅ マップサイズに合わせてキャンバスを調整
+canvas.width = COLS * TILE;
+canvas.height = ROWS * TILE;
+
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
   console.log(msg);
@@ -149,7 +153,7 @@ function draw() {
       const dx = x * TILE, dy = y * TILE;
 
       // 床は常に敷く
-      if (images.floor.complete) {
+      if (images.floor.complete && images.floor.naturalWidth) {
         ctx.drawImage(images.floor, dx, dy, TILE, TILE);
       } else {
         ctx.fillStyle = '#cfeec0';
@@ -185,3 +189,4 @@ function draw() {
 }
 
 setStatus('画像読み込み中…');
+draw(); // 最初に1回描画
