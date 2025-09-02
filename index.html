@@ -9,14 +9,11 @@
   <h1>🌸 新潟RPG デモ版</h1>
   <p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
 
-  <!-- ゲーム画面 -->
   <canvas id="gameCanvas" width="480" height="320"></canvas>
-
-  <!-- メッセージ表示領域 -->
   <div id="messageBox"></div>
 
-  <!-- ゲーム用スクリプト -->
-  <script src="script/main.js"></script>
-  <script src="script/map.js"></script>
+  <!-- ゲーム用スクリプト（依存順） -->
+  <script src="script/map.js" defer></script>
+  <script src="script/main.js" defer></script>
 </body>
 </html>
