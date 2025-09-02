@@ -84,4 +84,4 @@ function draw() {
 }
 
 draw();
-setStatus("画像を読み込み中… ./assets/images/tanbo.png, ./assets/images/noumin.png");
+setStatus("画像を読み込み中… .assets/images/tanbo.png, .assets/images/noumin.png");
