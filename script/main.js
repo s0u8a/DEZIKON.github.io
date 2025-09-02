@@ -16,21 +16,6 @@ function setStatus(msg) {
 }
 
 // -----------------------------
-// 画像読み込み
-// -----------------------------
-const images = {
-  bg: load('./assets/images/tanbo.png', 'background'),
-  pl: load('./assets/images/noumin.png', 'player'),
-};
-function load(src, label) {
-  const img = new Image();
-  img.onload = () => setStatus(`✅ loaded: ${label} → ${src}`);
-  img.onerror = () => setStatus(`❌ error: ${label} → ${src}`);
-  img.src = src;
-  return img;
-}
-
-// -----------------------------
 // プレイヤー情報
 // -----------------------------
 const player = {
@@ -51,6 +36,33 @@ for (let y = 0; y < ROWS; y++) {
 }
 
 // -----------------------------
+// 画像読み込み
+// -----------------------------
+const images = {
+  bg: new Image(),
+  pl: new Image()
+};
+
+let loadedImages = 0;
+function imageLoaded() {
+  loadedImages++;
+  if (loadedImages >= 2) {
+    draw(); // 両方ロード完了で描画
+    setStatus('✅ 画像読み込み完了');
+  }
+}
+
+// 背景画像
+images.bg.src = './assets/images/tanbo.png';
+images.bg.onload = imageLoaded;
+images.bg.onerror = () => setStatus('❌ 背景画像読み込み失敗');
+
+// プレイヤー画像
+images.pl.src = './assets/images/noumin.png';
+images.pl.onload = imageLoaded;
+images.pl.onerror = () => setStatus('❌ プレイヤー画像読み込み失敗');
+
+// -----------------------------
 // 移動判定
 // -----------------------------
 function walkable(x, y) {
@@ -63,14 +75,14 @@ function walkable(x, y) {
 function takeDamage(amount = 1) {
   player.hearts -= amount;
   if (player.hearts < 0) player.hearts = 0;
-  draw(); // HP変化後は描画更新
+  draw();
   setStatus(`💔 HP: ${player.hearts}/${player.maxHearts}`);
 }
 
 function heal(amount = 1) {
   player.hearts += amount;
   if (player.hearts > player.maxHearts) player.hearts = player.maxHearts;
-  draw(); // 回復後描画更新
+  draw();
   setStatus(`❤️ HP: ${player.hearts}/${player.maxHearts}`);
 }
 
@@ -79,16 +91,16 @@ function heal(amount = 1) {
 // -----------------------------
 function onTile(x, y) {
   const t = GRID[y][x];
-  if (t === 'E') {          // 敵
+  if (t === 'E') {
     setStatus('👹 敵に遭遇！クイズへ…（仮）');
-    takeDamage(1);           // HP1減少
-  } else if (t === 'I') {   // アイテム
+    takeDamage(1);
+  } else if (t === 'I') {
     setStatus('🎁 アイテムを取得！ハート+1');
-    heal(1);                 // HP1回復
-    GRID[y][x] = '0';        // アイテム消す
-  } else if (t === 'A') {   // 味方
+    heal(1);
+    GRID[y][x] = '0';
+  } else if (t === 'A') {
     setStatus('🤝 味方に会った！');
-  } else if (t === 'G') {   // ゴール
+  } else if (t === 'G') {
     setStatus('🏁 ゴール！');
   }
 }
@@ -97,7 +109,9 @@ function onTile(x, y) {
 // キー入力
 // -----------------------------
 window.addEventListener('keydown', e => {
-  let nx = player.x, ny = player.y, handled = true;
+  let nx = player.x, ny = player.y;
+  let handled = true;
+
   if (e.key === 'ArrowUp') ny--;
   else if (e.key === 'ArrowDown') ny++;
   else if (e.key === 'ArrowLeft') nx--;
@@ -109,8 +123,8 @@ window.addEventListener('keydown', e => {
   if (handled && walkable(nx, ny)) {
     player.x = nx;
     player.y = ny;
-    draw();
     onTile(nx, ny);
+    draw();
   }
 });
 
@@ -118,7 +132,7 @@ window.addEventListener('keydown', e => {
 // ライフゲージ描画
 // -----------------------------
 function drawLifeGauge() {
-  const startX = 10; 
+  const startX = 10;
   const startY = 10;
   const size = 16;
   const gap = 4;
@@ -151,7 +165,6 @@ function draw() {
       ctx.strokeStyle = 'rgba(0,0,0,.08)';
       ctx.strokeRect(x * TILE + .5, y * TILE + .5, TILE - 1, TILE - 1);
 
-      // デバッグ文字
       if (t !== '0' && t !== '#') {
         ctx.fillStyle = 'rgba(0,0,0,.28)';
         ctx.font = '12px sans-serif';
@@ -160,7 +173,7 @@ function draw() {
     }
   }
 
-  // プレイヤー描画
+  // プレイヤー
   const dx = player.x * TILE, dy = player.y * TILE;
   if (images.pl.complete && images.pl.naturalWidth) {
     ctx.drawImage(images.pl, dx, dy, TILE, TILE);
@@ -169,10 +182,8 @@ function draw() {
     ctx.fillRect(dx + 8, dy + 8, TILE - 16, TILE - 16);
   }
 
-  // HPライフゲージ描画
+  // HPライフゲージ
   drawLifeGauge();
 }
 
-// 初回描画
-draw();
-setStatus('画像を読み込み中… ./assets/images/tanbo.png, ./assets/images/noumin.png');
+setStatus('画像読み込み中…');
