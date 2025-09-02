@@ -38,29 +38,23 @@ for (let y = 0; y < ROWS; y++) {
 // -----------------------------
 // 画像読み込み
 // -----------------------------
-const images = {
-  bg: new Image(),
-  pl: new Image()
-};
-
-let loadedImages = 0;
-function imageLoaded() {
-  loadedImages++;
-  if (loadedImages >= 2) {
-    draw(); // 両方ロード完了で描画
-    setStatus('✅ 画像読み込み完了');
-  }
+function loadImage(src) {
+  const img = new Image();
+  img.src = src;
+  img.onload = () => setStatus(`✅ loaded: ${src}`);
+  img.onerror = () => setStatus(`❌ error: ${src}`);
+  return img;
 }
 
-// 背景画像
-images.bg.src = './assets/images/tanbo.png';
-images.bg.onload = imageLoaded;
-images.bg.onerror = () => setStatus('❌ 背景画像読み込み失敗');
-
-// プレイヤー画像
-images.pl.src = './assets/images/noumin.png';
-images.pl.onload = imageLoaded;
-images.pl.onerror = () => setStatus('❌ プレイヤー画像読み込み失敗');
+const images = {
+  floor: loadImage('./assets/images/tanbo.png'), // 床
+  wall: loadImage('./assets/images/wall.png'),   // 壁
+  enemy: loadImage('./assets/images/enemy.png'), // 敵
+  item: loadImage('./assets/images/item.png'),   // アイテム
+  ally: loadImage('./assets/images/ally.png'),   // 味方
+  goal: loadImage('./assets/images/goal.png'),   // ゴール
+  pl: loadImage('./assets/images/noumin.png')    // プレイヤー
+};
 
 // -----------------------------
 // 移動判定
@@ -97,7 +91,7 @@ function onTile(x, y) {
   } else if (t === 'I') {
     setStatus('🎁 アイテムを取得！ハート+1');
     heal(1);
-    GRID[y][x] = '0';
+    GRID[y][x] = '0'; // アイテム消滅
   } else if (t === 'A') {
     setStatus('🤝 味方に会った！');
   } else if (t === 'G') {
@@ -146,29 +140,33 @@ function drawLifeGauge() {
 // 描画
 // -----------------------------
 function draw() {
-  // 背景
-  if (images.bg.complete && images.bg.naturalWidth) {
-    ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
-  } else {
-    ctx.fillStyle = '#cfeec0';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // マップ＆壁
+  // マップタイル
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
       const t = GRID[y][x];
-      if (t === '#') {
-        ctx.fillStyle = '#556b2f';
-        ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
-      }
-      ctx.strokeStyle = 'rgba(0,0,0,.08)';
-      ctx.strokeRect(x * TILE + .5, y * TILE + .5, TILE - 1, TILE - 1);
+      const dx = x * TILE, dy = y * TILE;
 
-      if (t !== '0' && t !== '#') {
-        ctx.fillStyle = 'rgba(0,0,0,.28)';
-        ctx.font = '12px sans-serif';
-        ctx.fillText(t, x * TILE + 6, y * TILE + 18);
+      // 床は常に敷く
+      if (images.floor.complete) {
+        ctx.drawImage(images.floor, dx, dy, TILE, TILE);
+      } else {
+        ctx.fillStyle = '#cfeec0';
+        ctx.fillRect(dx, dy, TILE, TILE);
+      }
+
+      // タイルごとの上書き
+      if (t === '#') {
+        ctx.drawImage(images.wall, dx, dy, TILE, TILE);
+      } else if (t === 'E') {
+        ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
+      } else if (t === 'I') {
+        ctx.drawImage(images.item, dx, dy, TILE, TILE);
+      } else if (t === 'A') {
+        ctx.drawImage(images.ally, dx, dy, TILE, TILE);
+      } else if (t === 'G') {
+        ctx.drawImage(images.goal, dx, dy, TILE, TILE);
       }
     }
   }
