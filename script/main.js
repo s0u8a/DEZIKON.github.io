@@ -48,14 +48,20 @@ for (let y = 0; y < ROWS; y++) {
 }
 
 // -----------------------------
-// 敵の管理
+// 敵の管理（上下左右移動 + ドクドク）
 // -----------------------------
 const enemies = [];
 for (let y = 0; y < ROWS; y++) {
   for (let x = 0; x < COLS; x++) {
     if (GRID[y][x] === 'E') {
-      enemies.push({ x: x, y: y });
-      GRID[y][x] = '0'; // マップからは消す
+      // 初期方向をランダムに決める
+      const dirs = [
+        { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+        { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+      ];
+      const dir = dirs[Math.floor(Math.random() * dirs.length)];
+      enemies.push({ x: x, y: y, dx: dir.dx, dy: dir.dy });
+      GRID[y][x] = '0';
     }
   }
 }
@@ -143,29 +149,28 @@ document.addEventListener('keydown', e => {
 });
 
 // -----------------------------
-// 敵の描画（鼓動アニメーション付き）
+// 敵の更新（上下左右移動 + 当たり判定）
 // -----------------------------
-let animationFrame = 0;
-
-function drawEnemies(offsetX, offsetY) {
-  animationFrame++; // アニメーション用カウンタ
-
+function updateEnemies() {
   for (let e of enemies) {
-    const dx = (e.x - offsetX) * TILE;
-    const dy = (e.y - offsetY) * TILE;
+    let nx = e.x + e.dx;
+    let ny = e.y + e.dy;
 
-    // ドクドク鼓動（常に拡大縮小）
-    let pulse = 1 + 0.1 * Math.sin(animationFrame * 0.1);
-    let size = TILE * pulse;
-
-    // 中心に合わせるための補正
-    const offset = (TILE - size) / 2;
-
-    if (dx >= 0 && dx < canvas.width && dy >= 0 && dy < canvas.height) {
-      ctx.drawImage(images.enemy, dx + offset, dy + offset, size, size);
+    // 移動できなければランダム方向に変更
+    if (!walkable(nx, ny)) {
+      const dirs = [
+        { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+        { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+      ];
+      const dir = dirs[Math.floor(Math.random() * dirs.length)];
+      e.dx = dir.dx;
+      e.dy = dir.dy;
+    } else {
+      e.x = nx;
+      e.y = ny;
     }
 
-    // プレイヤーと同じマスならダメージ
+    // プレイヤーに接触したらダメージ
     if (e.x === player.x && e.y === player.y) {
       setStatus("👹 敵にぶつかった！");
       takeDamage(1);
@@ -174,7 +179,30 @@ function drawEnemies(offsetX, offsetY) {
 }
 
 // -----------------------------
-// ライフゲージ描画（鼓動アニメーション）
+// 敵の描画（ドクドクアニメーション付き）
+// -----------------------------
+let animationFrame = 0;
+
+function drawEnemies(offsetX, offsetY) {
+  animationFrame++; 
+
+  for (let e of enemies) {
+    const dx = (e.x - offsetX) * TILE;
+    const dy = (e.y - offsetY) * TILE;
+
+    // ドクドク鼓動
+    let pulse = 1 + 0.1 * Math.sin(animationFrame * 0.1);
+    let size = TILE * pulse;
+    const offset = (TILE - size) / 2;
+
+    if (dx >= 0 && dx < canvas.width && dy >= 0 && dy < canvas.height) {
+      ctx.drawImage(images.enemy, dx + offset, dy + offset, size, size);
+    }
+  }
+}
+
+// -----------------------------
+// ライフゲージ描画（鼓動付き）
 // -----------------------------
 function drawLifeGauge() {
   const startX = 10, startY = 10, baseSize = 32, gap = 4;
@@ -230,7 +258,8 @@ function draw() {
     }
   }
 
-  // 敵（鼓動アニメーション付き）
+  // 敵の更新 & 描画
+  updateEnemies();
   drawEnemies(offsetX, offsetY);
 
   // プレイヤー描画
