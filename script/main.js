@@ -7,8 +7,14 @@ let ROWS = GRID.length;
 let COLS = GRID[0]?.length ?? 0;
 
 const canvas = document.getElementById('gameCanvas');
+canvas.setAttribute('tabindex', '0'); // ← キーボード操作可能にする
+canvas.focus();                       // ← 起動時にフォーカスを当てる
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
+
+canvas.addEventListener('click', () => {
+  canvas.focus(); // ← クリックでフォーカス復帰
+});
 
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
@@ -16,9 +22,8 @@ function setStatus(msg) {
 }
 
 // 表示範囲（スクロール用）
-// ★ 全体表示にしたいなら COLS / ROWS をそのまま使う
-const VIEW_COLS = 10;  // ← 全体表示するなら COLS
-const VIEW_ROWS = 8;   // ← 全体表示するなら ROWS
+const VIEW_COLS = 10;  
+const VIEW_ROWS = 8;   
 canvas.width  = VIEW_COLS * TILE;
 canvas.height = VIEW_ROWS * TILE;
 
@@ -65,7 +70,9 @@ const images = {
 // 移動判定
 // -----------------------------
 function walkable(x, y) {
-  return !(x < 0 || x >= COLS || y < 0 || y >= ROWS) && GRID[y][x] !== '#';
+  if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
+  const t = GRID[y][x];
+  return t !== '#'; // 壁以外は歩ける
 }
 
 // -----------------------------
@@ -124,6 +131,8 @@ window.addEventListener('keydown', e => {
     player.y = ny;
     onTile(nx, ny);
     draw();
+    setStatus(`移動: (${player.x}, ${player.y})`); // ← デバッグ表示
+    console.log("Moved to:", nx, ny);
   }
 });
 
