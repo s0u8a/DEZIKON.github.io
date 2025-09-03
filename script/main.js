@@ -61,9 +61,10 @@ const images = {
   wall:  loadImage('./assets/images/mizu.png'),     // 壁を mizu.png に変更
   enemy: loadImage('./assets/images/enemy.png'),
   item:  loadImage('./assets/images/ha-to.png'),   // アイテムを ha-to.png に変更
-  ally:  loadImage('./assets/images/ally.png'),    // ally を ally.png に変更
+  ally:  loadImage('./assets/images/ally.png'),
   goal:  loadImage('./assets/images/goal.png'),
-  pl:    loadImage('./assets/images/noumin.png')
+  pl:    loadImage('./assets/images/noumin.png'),
+  heart: loadImage('./assets/images/ha-to.png')    // ライフゲージも ha-to.png に変更
 };
 
 // -----------------------------
@@ -114,7 +115,7 @@ function onTile(x, y) {
 // -----------------------------
 // キー入力
 // -----------------------------
-window.addEventListener('keydown', e => {
+document.addEventListener('keydown', e => {
   let nx = player.x, ny = player.y;
   let handled = true;
 
@@ -131,19 +132,28 @@ window.addEventListener('keydown', e => {
     player.y = ny;
     onTile(nx, ny);
     draw();
-    setStatus(`移動: (${player.x}, ${player.y})`); // ← デバッグ表示
+    setStatus(`移動: (${player.x}, ${player.y})`); // デバッグ表示
     console.log("Moved to:", nx, ny);
   }
 });
 
 // -----------------------------
-// ライフゲージ描画
+// ライフゲージ描画（ハート画像）
 // -----------------------------
 function drawLifeGauge() {
-  const startX = 10, startY = 10, size = 16, gap = 4;
+  const startX = 10, startY = 10, size = 32, gap = 4;
   for (let i = 0; i < player.maxHearts; i++) {
-    ctx.fillStyle = (i < player.hearts) ? 'red' : 'gray';
-    ctx.fillRect(startX + i * (size + gap), startY, size, size);
+    const dx = startX + i * (size + gap);
+    const dy = startY;
+    if (i < player.hearts) {
+      // 残HP → 通常表示
+      ctx.drawImage(images.heart, dx, dy, size, size);
+    } else {
+      // 減ったHP → 半透明で表示
+      ctx.globalAlpha = 0.3;
+      ctx.drawImage(images.heart, dx, dy, size, size);
+      ctx.globalAlpha = 1.0;
+    }
   }
 }
 
