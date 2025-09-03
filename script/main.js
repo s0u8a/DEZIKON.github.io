@@ -22,8 +22,8 @@ function setStatus(msg) {
 }
 
 // 表示範囲
-const VIEW_COLS = 10;  
-const VIEW_ROWS = 8;   
+const VIEW_COLS = 10;
+const VIEW_ROWS = 8;
 canvas.width  = VIEW_COLS * TILE;
 canvas.height = VIEW_ROWS * TILE;
 
@@ -34,7 +34,8 @@ const player = {
   x: 1,
   y: 1,
   hearts: 3,
-  maxHearts: 3
+  maxHearts: 3,
+  invincibleTime: 0 // 無敵時間カウンタ
 };
 
 // スタート位置(S)があれば設定
@@ -54,14 +55,13 @@ const enemies = [];
 for (let y = 0; y < ROWS; y++) {
   for (let x = 0; x < COLS; x++) {
     if (GRID[y][x] === 'E') {
-      // 初期方向をランダムに決める
       const dirs = [
         { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
         { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
       ];
       const dir = dirs[Math.floor(Math.random() * dirs.length)];
       enemies.push({ x: x, y: y, dx: dir.dx, dy: dir.dy });
-      GRID[y][x] = '0';
+      GRID[y][x] = '0'; // マップからは消す
     }
   }
 }
@@ -99,8 +99,12 @@ function walkable(x, y) {
 // HP管理
 // -----------------------------
 function takeDamage(amount = 1) {
+  if (player.invincibleTime > 0) return; // 無敵中は無効化
+
   player.hearts -= amount;
   if (player.hearts < 0) player.hearts = 0;
+  player.invincibleTime = 10; // 10ターン無敵（調整可）
+
   setStatus(`💔 HP: ${player.hearts}/${player.maxHearts}`);
 }
 
@@ -127,7 +131,7 @@ function onTile(x, y) {
 }
 
 // -----------------------------
-// キー入力
+// キー入力（プレイヤーが動いたら敵も動く）
 // -----------------------------
 document.addEventListener('keydown', e => {
   let nx = player.x, ny = player.y;
@@ -145,6 +149,12 @@ document.addEventListener('keydown', e => {
     player.x = nx;
     player.y = ny;
     onTile(nx, ny);
+
+    // プレイヤーが動いたターンで敵も移動
+    updateEnemies();
+
+    // 無敵時間カウント減少
+    if (player.invincibleTime > 0) player.invincibleTime--;
   }
 });
 
@@ -156,7 +166,7 @@ function updateEnemies() {
     let nx = e.x + e.dx;
     let ny = e.y + e.dy;
 
-    // 移動できなければランダム方向に変更
+    // 壁ならランダム方向転換
     if (!walkable(nx, ny)) {
       const dirs = [
         { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
@@ -172,7 +182,6 @@ function updateEnemies() {
 
     // プレイヤーに接触したらダメージ
     if (e.x === player.x && e.y === player.y) {
-      setStatus("👹 敵にぶつかった！");
       takeDamage(1);
     }
   }
@@ -184,7 +193,7 @@ function updateEnemies() {
 let animationFrame = 0;
 
 function drawEnemies(offsetX, offsetY) {
-  animationFrame++; 
+  animationFrame++;
 
   for (let e of enemies) {
     const dx = (e.x - offsetX) * TILE;
@@ -258,8 +267,7 @@ function draw() {
     }
   }
 
-  // 敵の更新 & 描画
-  updateEnemies();
+  // 敵の描画（鼓動アニメーション付き）
   drawEnemies(offsetX, offsetY);
 
   // プレイヤー描画
