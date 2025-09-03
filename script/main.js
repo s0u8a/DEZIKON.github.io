@@ -226,4 +226,32 @@ function draw() {
       const t = GRID[mapY][mapX];
       const dx = x * TILE, dy = y * TILE;
 
-      ctx.drawImage(images.
+      ctx.drawImage(images.floor, dx, dy, TILE, TILE);
+
+      if (t === '#') ctx.drawImage(images.wall, dx, dy, TILE, TILE);
+      else if (t === 'I') ctx.drawImage(images.item, dx, dy, TILE, TILE);
+      else if (t === 'A') ctx.drawImage(images.ally, dx, dy, TILE, TILE);
+      else if (t === 'G') ctx.drawImage(images.goal, dx, dy, TILE, TILE);
+    }
+  }
+
+  // 敵更新＆描画
+  updateEnemies();
+  drawEnemies(offsetX, offsetY);
+
+  // プレイヤー描画
+  const px = (player.x - offsetX) * TILE;
+  const py = (player.y - offsetY) * TILE;
+  ctx.drawImage(images.pl, px, py, TILE, TILE);
+
+  // HPライフゲージ
+  drawLifeGauge();
+
+  requestAnimationFrame(draw);
+}
+
+// -----------------------------
+// 初回描画開始
+// -----------------------------
+setStatus('✅ ゲーム開始');
+draw();
