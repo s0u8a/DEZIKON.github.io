@@ -58,13 +58,13 @@ function loadImage(src) {
 
 const images = {
   floor: loadImage('./assets/images/tanbo.png'),
-  wall:  loadImage('./assets/images/mizu.png'),     // 壁を mizu.png に変更
+  wall:  loadImage('./assets/images/mizu.png'),     
   enemy: loadImage('./assets/images/enemy.png'),
-  item:  loadImage('./assets/images/ha-to.png'),   // アイテムを ha-to.png に変更
+  item:  loadImage('./assets/images/ha-to.png'),   
   ally:  loadImage('./assets/images/ally.png'),
   goal:  loadImage('./assets/images/goal.png'),
   pl:    loadImage('./assets/images/noumin.png'),
-  heart: loadImage('./assets/images/ha-to.png')    // ライフゲージも ha-to.png に変更
+  heart: loadImage('./assets/images/ha-to.png')    // ライフゲージ用ハート画像
 };
 
 // -----------------------------
@@ -132,26 +132,35 @@ document.addEventListener('keydown', e => {
     player.y = ny;
     onTile(nx, ny);
     draw();
-    setStatus(`移動: (${player.x}, ${player.y})`); // デバッグ表示
-    console.log("Moved to:", nx, ny);
+    setStatus(`移動: (${player.x}, ${player.y})`);
   }
 });
 
 // -----------------------------
-// ライフゲージ描画（ハート画像）
+// ライフゲージ描画（鼓動アニメーション付き）
 // -----------------------------
+let animationFrame = 0;
+
 function drawLifeGauge() {
-  const startX = 10, startY = 10, size = 32, gap = 4;
+  const startX = 10, startY = 10, baseSize = 32, gap = 4;
+  animationFrame++;
+
   for (let i = 0; i < player.maxHearts; i++) {
-    const dx = startX + i * (size + gap);
+    const dx = startX + i * (baseSize + gap);
     const dy = startY;
+
     if (i < player.hearts) {
-      // 残HP → 通常表示
+      // 残りHPが1個のとき → ドクンドクン動く
+      let pulse = (player.hearts <= 1)
+        ? 1 + 0.2 * Math.sin(animationFrame * 0.1)
+        : 1;
+      let size = baseSize * pulse;
+
       ctx.drawImage(images.heart, dx, dy, size, size);
     } else {
-      // 減ったHP → 半透明で表示
+      // 減ったHPは半透明で表示
       ctx.globalAlpha = 0.3;
-      ctx.drawImage(images.heart, dx, dy, size, size);
+      ctx.drawImage(images.heart, dx, dy, baseSize, baseSize);
       ctx.globalAlpha = 1.0;
     }
   }
@@ -199,10 +208,13 @@ function draw() {
 
   // HPライフゲージ
   drawLifeGauge();
+
+  // 再描画ループ
+  requestAnimationFrame(draw);
 }
 
 // -----------------------------
-// 初回描画
+// 初回描画開始
 // -----------------------------
 setStatus('✅ ゲーム開始');
 draw();
