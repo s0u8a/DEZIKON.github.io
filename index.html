@@ -6,16 +6,37 @@
   <title>🌾 新潟RPG デモ版</title>
 </head>
 <body>
-  <h1>🌸 新潟RPG デモ版</h1>
-  <p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
+  <!-- ▼スタート画面 -->
+  <div id="startScreen">
+    <h1>🌸 新潟RPG デモ版</h1>
+    <p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
+    <button id="startBtn">ゲームスタート</button>
+  </div>
+  <!-- ▲スタート画面 -->
 
-  <canvas id="gameCanvas"></canvas>
+  <!-- ゲーム本体 -->
+  <canvas id="gameCanvas" style="display:none;"></canvas>
   <div id="status" aria-live="polite"></div>
 
   <!-- 非モジュール。必ず map.js → main.js の順で、両方とも defer -->
-<script src="script/map.js" defer></script>
-<script src="script/main.js" defer></script>
+  <script src="script/map.js" defer></script>
+  <script src="script/main.js" defer></script>
 
+  <!-- スタート画面制御用の追加スクリプト -->
+  <script defer>
+    document.addEventListener("DOMContentLoaded", () => {
+      const startScreen = document.getElementById("startScreen");
+      const startBtn = document.getElementById("startBtn");
+      const canvas = document.getElementById("gameCanvas");
+
+      startBtn.addEventListener("click", () => {
+        startScreen.style.display = "none";  // スタート画面を隠す
+        canvas.style.display = "block";      // ゲーム画面を表示
+        if (typeof window.startGame === "function") {
+          window.startGame(); // main.js 内に定義した startGame() を呼ぶ
+        }
+      });
+    });
+  </script>
 </body>
 </html>
-
