@@ -15,19 +15,17 @@ body {
 }
 
 .tile {
-  width: 32px;
-  height: 32px;
+  width: 64px;   /* TILE に合わせる */
+  height: 64px;
   border: 1px solid #333;
+  background-size: cover;  /* 画像を枠いっぱいに敷き詰める */
 }
 
-.tile.floor {
-  background: #444;
-}
-
-.tile.wall {
-  background: #222;
-}
-
-.tile.player {
-  background: #ff5555;
-}
+/* タイルごとに画像を割り当て */
+.tile.floor  { background-image: url("./assets/images/tanbo.png"); }
+.tile.wall   { background-image: url("./assets/images/wall.png"); }
+.tile.player { background-image: url("./assets/images/noumin.png"); }
+.tile.enemy  { background-image: url("./assets/images/enemy.png"); }
+.tile.item   { background-image: url("./assets/images/item.png"); }
+.tile.ally   { background-image: url("./assets/images/ally.png"); }
+.tile.goal   { background-image: url("./assets/images/goal.png"); }
