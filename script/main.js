@@ -7,13 +7,13 @@ let ROWS = GRID.length;
 let COLS = GRID[0]?.length ?? 0;
 
 const canvas = document.getElementById('gameCanvas');
-canvas.setAttribute('tabindex', '0'); // ← キーボード操作可能にする
-canvas.focus();                       // ← 起動時にフォーカスを当てる
+canvas.setAttribute('tabindex', '0'); 
+canvas.focus();
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
 
 canvas.addEventListener('click', () => {
-  canvas.focus(); // ← クリックでフォーカス復帰
+  canvas.focus();
 });
 
 function setStatus(msg) {
@@ -21,7 +21,7 @@ function setStatus(msg) {
   console.log(msg);
 }
 
-// 表示範囲（スクロール用）
+// 表示範囲
 const VIEW_COLS = 10;  
 const VIEW_ROWS = 8;   
 canvas.width  = VIEW_COLS * TILE;
@@ -48,6 +48,19 @@ for (let y = 0; y < ROWS; y++) {
 }
 
 // -----------------------------
+// 敵の管理（動く敵リスト）
+// -----------------------------
+const enemies = [];
+for (let y = 0; y < ROWS; y++) {
+  for (let x = 0; x < COLS; x++) {
+    if (GRID[y][x] === 'E') {
+      enemies.push({ x: x, y: y, dir: 1 }); // dir=移動方向（1=右、-1=左）
+      GRID[y][x] = '0'; // マップからは消して、配列で管理
+    }
+  }
+}
+
+// -----------------------------
 // 画像読み込み
 // -----------------------------
 function loadImage(src) {
@@ -58,13 +71,13 @@ function loadImage(src) {
 
 const images = {
   floor: loadImage('./assets/images/tanbo.png'),
-  wall:  loadImage('./assets/images/mizu.png'),     
+  wall:  loadImage('./assets/images/mizu.png'),
   enemy: loadImage('./assets/images/enemy.png'),
-  item:  loadImage('./assets/images/ha-to.png'),   
+  item:  loadImage('./assets/images/ha-to.png'),
   ally:  loadImage('./assets/images/ally.png'),
   goal:  loadImage('./assets/images/goal.png'),
   pl:    loadImage('./assets/images/noumin.png'),
-  heart: loadImage('./assets/images/ha-to.png')    // ライフゲージ用ハート画像
+  heart: loadImage('./assets/images/ha-to.png')
 };
 
 // -----------------------------
@@ -73,7 +86,7 @@ const images = {
 function walkable(x, y) {
   if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
   const t = GRID[y][x];
-  return t !== '#'; // 壁以外は歩ける
+  return t !== '#'; 
 }
 
 // -----------------------------
@@ -98,10 +111,7 @@ function heal(amount = 1) {
 // -----------------------------
 function onTile(x, y) {
   const t = GRID[y][x];
-  if (t === 'E') {
-    setStatus('👹 敵に遭遇！');
-    takeDamage(1);
-  } else if (t === 'I') {
+  if (t === 'I') {
     setStatus('🎁 アイテムを取得！');
     heal(1);
     GRID[y][x] = '0';
@@ -132,9 +142,38 @@ document.addEventListener('keydown', e => {
     player.y = ny;
     onTile(nx, ny);
     draw();
-    setStatus(`移動: (${player.x}, ${player.y})`);
   }
 });
+
+// -----------------------------
+// 敵の更新＆描画
+// -----------------------------
+function updateEnemies() {
+  for (let e of enemies) {
+    let nx = e.x + e.dir;
+
+    // 壁に当たったら反転
+    if (!walkable(nx, e.y)) {
+      e.dir *= -1;
+    } else {
+      e.x = nx;
+    }
+
+    // プレイヤーと同じマスならダメージ
+    if (e.x === player.x && e.y === player.y) {
+      setStatus("👹 敵にぶつかった！");
+      takeDamage(1);
+    }
+  }
+}
+
+function drawEnemies(offsetX, offsetY) {
+  for (let e of enemies) {
+    const dx = (e.x - offsetX) * TILE;
+    const dy = (e.y - offsetY) * TILE;
+    ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
+  }
+}
 
 // -----------------------------
 // ライフゲージ描画（鼓動アニメーション付き）
@@ -150,7 +189,6 @@ function drawLifeGauge() {
     const dy = startY;
 
     if (i < player.hearts) {
-      // 残りHPが1個のとき → ドクンドクン動く
       let pulse = (player.hearts <= 1)
         ? 1 + 0.2 * Math.sin(animationFrame * 0.1)
         : 1;
@@ -158,7 +196,6 @@ function drawLifeGauge() {
 
       ctx.drawImage(images.heart, dx, dy, size, size);
     } else {
-      // 減ったHPは半透明で表示
       ctx.globalAlpha = 0.3;
       ctx.drawImage(images.heart, dx, dy, baseSize, baseSize);
       ctx.globalAlpha = 1.0;
@@ -167,12 +204,11 @@ function drawLifeGauge() {
 }
 
 // -----------------------------
-// 描画（スクロール対応）
+// 描画ループ
 // -----------------------------
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // プレイヤー中心に表示範囲を決定
   let offsetX = player.x - Math.floor(VIEW_COLS / 2);
   let offsetY = player.y - Math.floor(VIEW_ROWS / 2);
 
@@ -189,17 +225,18 @@ function draw() {
       const t = GRID[mapY][mapX];
       const dx = x * TILE, dy = y * TILE;
 
-      // 床
       ctx.drawImage(images.floor, dx, dy, TILE, TILE);
 
-      // 上書きタイル
       if (t === '#') ctx.drawImage(images.wall, dx, dy, TILE, TILE);
-      else if (t === 'E') ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
       else if (t === 'I') ctx.drawImage(images.item, dx, dy, TILE, TILE);
       else if (t === 'A') ctx.drawImage(images.ally, dx, dy, TILE, TILE);
       else if (t === 'G') ctx.drawImage(images.goal, dx, dy, TILE, TILE);
     }
   }
+
+  // 敵更新＆描画
+  updateEnemies();
+  drawEnemies(offsetX, offsetY);
 
   // プレイヤー描画
   const px = (player.x - offsetX) * TILE;
@@ -209,7 +246,6 @@ function draw() {
   // HPライフゲージ
   drawLifeGauge();
 
-  // 再描画ループ
   requestAnimationFrame(draw);
 }
 
