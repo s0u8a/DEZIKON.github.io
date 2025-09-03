@@ -214,3 +214,23 @@ function draw() {
 // -----------------------------
 setStatus('✅ ゲーム開始');
 draw();
+// -----------------------------
+// GMAP_READY を受け取ってから描画（map.jsが確実に反映される）
+// -----------------------------
+window.addEventListener('GMAP_READY', () => {
+  console.log('[main] GMAP ready', window.GMAP);
+
+  // スタート位置を再設定
+  for (let y = 0; y < window.GMAP.grid.length; y++) {
+    for (let x = 0; x < window.GMAP.grid[0].length; x++) {
+      if (window.GMAP.grid[y][x] === 'S') {
+        player.x = x;
+        player.y = y;
+      }
+    }
+  }
+
+  setStatus('🗺️ map.js が反映されました');
+  draw();
+}, { once: true });
+
