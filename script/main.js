@@ -53,10 +53,10 @@ function loadImage(src) {
 
 const images = {
   floor: loadImage('./assets/images/tanbo.png'),
-  wall:  loadImage('./assets/images/wall.png'),
+  wall:  loadImage('./assets/images/mizu.png'),     // 壁を mizu.png に変更
   enemy: loadImage('./assets/images/enemy.png'),
-  item:  loadImage('./assets/images/item.png'),
-  ally:  loadImage('./assets/images/ally.png'),
+  item:  loadImage('./assets/images/ha-to.png'),   // アイテムを ha-to.png に変更
+  ally:  loadImage('./assets/images/ally.png'),    // ally を ally.png に変更
   goal:  loadImage('./assets/images/goal.png'),
   pl:    loadImage('./assets/images/noumin.png')
 };
