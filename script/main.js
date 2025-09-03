@@ -48,14 +48,14 @@ for (let y = 0; y < ROWS; y++) {
 }
 
 // -----------------------------
-// 敵の管理（動く敵リスト）
+// 敵の管理
 // -----------------------------
 const enemies = [];
 for (let y = 0; y < ROWS; y++) {
   for (let x = 0; x < COLS; x++) {
     if (GRID[y][x] === 'E') {
-      enemies.push({ x: x, y: y, dir: 1 }); // dir=移動方向（1=右、-1=左）
-      GRID[y][x] = '0'; // マップからは消して、配列で管理
+      enemies.push({ x: x, y: y, dir: 1 });
+      GRID[y][x] = '0'; // マップからは消す
     }
   }
 }
@@ -86,7 +86,7 @@ const images = {
 function walkable(x, y) {
   if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
   const t = GRID[y][x];
-  return t !== '#'; 
+  return t !== '#';
 }
 
 // -----------------------------
@@ -95,14 +95,12 @@ function walkable(x, y) {
 function takeDamage(amount = 1) {
   player.hearts -= amount;
   if (player.hearts < 0) player.hearts = 0;
-  draw();
   setStatus(`💔 HP: ${player.hearts}/${player.maxHearts}`);
 }
 
 function heal(amount = 1) {
   player.hearts += amount;
   if (player.hearts > player.maxHearts) player.hearts = player.maxHearts;
-  draw();
   setStatus(`❤️ HP: ${player.hearts}/${player.maxHearts}`);
 }
 
@@ -141,7 +139,6 @@ document.addEventListener('keydown', e => {
     player.x = nx;
     player.y = ny;
     onTile(nx, ny);
-    draw();
   }
 });
 
@@ -171,12 +168,16 @@ function drawEnemies(offsetX, offsetY) {
   for (let e of enemies) {
     const dx = (e.x - offsetX) * TILE;
     const dy = (e.y - offsetY) * TILE;
-    ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
+
+    // 画面内にいる敵だけ描画
+    if (dx >= 0 && dx < canvas.width && dy >= 0 && dy < canvas.height) {
+      ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
+    }
   }
 }
 
 // -----------------------------
-// ライフゲージ描画（鼓動アニメーション付き）
+// ライフゲージ描画（鼓動アニメーション）
 // -----------------------------
 let animationFrame = 0;
 
@@ -225,32 +226,4 @@ function draw() {
       const t = GRID[mapY][mapX];
       const dx = x * TILE, dy = y * TILE;
 
-      ctx.drawImage(images.floor, dx, dy, TILE, TILE);
-
-      if (t === '#') ctx.drawImage(images.wall, dx, dy, TILE, TILE);
-      else if (t === 'I') ctx.drawImage(images.item, dx, dy, TILE, TILE);
-      else if (t === 'A') ctx.drawImage(images.ally, dx, dy, TILE, TILE);
-      else if (t === 'G') ctx.drawImage(images.goal, dx, dy, TILE, TILE);
-    }
-  }
-
-  // 敵更新＆描画
-  updateEnemies();
-  drawEnemies(offsetX, offsetY);
-
-  // プレイヤー描画
-  const px = (player.x - offsetX) * TILE;
-  const py = (player.y - offsetY) * TILE;
-  ctx.drawImage(images.pl, px, py, TILE, TILE);
-
-  // HPライフゲージ
-  drawLifeGauge();
-
-  requestAnimationFrame(draw);
-}
-
-// -----------------------------
-// 初回描画開始
-// -----------------------------
-setStatus('✅ ゲーム開始');
-draw();
+      ctx.drawImage(images.
