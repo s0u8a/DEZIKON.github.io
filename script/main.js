@@ -77,14 +77,17 @@ function loadImage(src) {
 }
 
 const images = {
+const images = {
   floor: loadImage('./assets/images/tanbo.png'),
   wall:  loadImage('./assets/images/mizu.png'),
   enemy: loadImage('./assets/images/enemy.png'),
-  item:  loadImage('./assets/images/ha-to.png'),
-  ally:  loadImage('./assets/images/ally.png'),
+  item:  loadImage('./assets/images/komebukuro.png'), // ← 修正：米袋
+  ally:  loadImage('./assets/images/murabitopng.png'), // ← 修正：村人
   goal:  loadImage('./assets/images/goal.png'),
   pl:    loadImage('./assets/images/noumin.png'),
   heart: loadImage('./assets/images/ha-to.png')
+};
+
 };
 
 // -----------------------------
