@@ -14,3 +14,7 @@ window.GMAP = {
     ['#','#','#','#','#','#','#','#'],
   ]
 };
+
+// ✅ 読み込み確認用ログとイベント発火
+console.log('[GMAP] loaded', window.GMAP);
+window.dispatchEvent(new Event('GMAP_READY'));
