@@ -77,7 +77,7 @@ function loadImage(src) {
 }
 
 const images = {
-const images = {
+
   floor: loadImage('./assets/images/tanbo.png'),
   wall:  loadImage('./assets/images/mizu.png'),
   enemy: loadImage('./assets/images/enemy.png'),
@@ -86,7 +86,7 @@ const images = {
   goal:  loadImage('./assets/images/goal.png'),
   pl:    loadImage('./assets/images/noumin.png'),
   heart: loadImage('./assets/images/ha-to.png')
-};
+
 
 };
 
