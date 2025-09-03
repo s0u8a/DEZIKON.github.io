@@ -16,12 +16,10 @@ function setStatus(msg) {
 }
 
 // -----------------------------
-// 表示範囲（スクロール / 全体表示切り替え可）
+// 表示範囲（全体表示固定）
 // -----------------------------
-// 小さいマップはそのまま全体表示、大きいマップは一部を表示してスクロール
-const VIEW_COLS = Math.min(10, COLS); // マップが10列より小さい場合はCOLS
-const VIEW_ROWS = Math.min(8, ROWS);  // マップが8行より小さい場合はROWS
-
+const VIEW_COLS = COLS; // マップ幅に合わせる
+const VIEW_ROWS = ROWS; // マップ高さに合わせる
 canvas.width  = VIEW_COLS * TILE;
 canvas.height = VIEW_ROWS * TILE;
 
@@ -99,7 +97,7 @@ function onTile(x, y) {
   } else if (t === 'I') {
     setStatus('🎁 アイテムを取得！');
     heal(1);
-    GRID[y][x] = '0'; // アイテム消滅
+    GRID[y][x] = '0';
   } else if (t === 'A') {
     setStatus('🤝 味方に会った！');
   } else if (t === 'G') {
@@ -142,27 +140,19 @@ function drawLifeGauge() {
 }
 
 // -----------------------------
-// 描画（スクロール対応）
+// 描画（全体表示固定）
 // -----------------------------
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // プレイヤー中心に表示範囲を決定
-  let offsetX = player.x - Math.floor(VIEW_COLS / 2);
-  let offsetY = player.y - Math.floor(VIEW_ROWS / 2);
-
-  // COLS < VIEW_COLS のときも安全にする
-  offsetX = Math.max(0, Math.min(offsetX, Math.max(0, COLS - VIEW_COLS)));
-  offsetY = Math.max(0, Math.min(offsetY, Math.max(0, ROWS - VIEW_ROWS)));
+  // オフセットは常に0（全体表示）
+  let offsetX = 0;
+  let offsetY = 0;
 
   // マップ描画
   for (let y = 0; y < VIEW_ROWS; y++) {
     for (let x = 0; x < VIEW_COLS; x++) {
-      const mapX = x + offsetX;
-      const mapY = y + offsetY;
-      if (mapX >= COLS || mapY >= ROWS) continue;
-
-      const t = GRID[mapY][mapX];
+      const t = GRID[y][x];
       const dx = x * TILE, dy = y * TILE;
 
       // 床
