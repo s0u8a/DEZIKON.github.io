@@ -16,10 +16,10 @@ function setStatus(msg) {
 }
 
 // -----------------------------
-// 表示範囲（全体表示固定）
+// 表示範囲（マップ全体表示固定）
 // -----------------------------
-const VIEW_COLS = COLS; // マップ幅に合わせる
-const VIEW_ROWS = ROWS; // マップ高さに合わせる
+const VIEW_COLS = COLS;
+const VIEW_ROWS = ROWS;
 canvas.width  = VIEW_COLS * TILE;
 canvas.height = VIEW_ROWS * TILE;
 
@@ -145,7 +145,7 @@ function drawLifeGauge() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // オフセットは常に0（全体表示）
+  // オフセットは常に 0
   let offsetX = 0;
   let offsetY = 0;
 
