@@ -14,25 +14,21 @@ const statusEl = document.getElementById('status');
 const VIEW_COLS = 10; // 横に何マス表示するか
 const VIEW_ROWS = 8;  // 縦に何マス表示するか
 
-// ==== 高DPI対応（にじみ防止）ここから ====
-// const canvas.width/height 直指定をやめ、CSSサイズと内部ピクセルを分離
-const DPR = Math.max(1, window.devicePixelRatio || 1);                   // [ADDED]
-function resizeCanvas() {                                                // [ADDED]
+// ==== 高DPI対応（にじみ防止）====
+const DPR = Math.max(1, window.devicePixelRatio || 1);
+function resizeCanvas() {
   const cssW = VIEW_COLS * TILE;
   const cssH = VIEW_ROWS * TILE;
   canvas.style.width = cssW + 'px';
   canvas.style.height = cssH + 'px';
   canvas.width = Math.floor(cssW * DPR);
   canvas.height = Math.floor(cssH * DPR);
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // 以後はCSS座標系で描ける
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // ドット絵をにじませない
+  ctx.imageSmoothingEnabled = false;
 }
-resizeCanvas();                                                          // [ADDED]
-window.addEventListener('resize', () => { resizeCanvas(); draw(); });    // [ADDED]
-// ==== 高DPI対応ここまで ====
-
-// （元の直指定は削除）
-// canvas.width = VIEW_COLS * TILE;
-// canvas.height = VIEW_ROWS * TILE;
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); draw(); });
 
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
@@ -60,22 +56,25 @@ for (let y = 0; y < ROWS; y++) {
 }
 
 // -----------------------------
-// 画像読み込み
+// 画像読み込み（onloadで再描画 & 失敗時はログ）
 // -----------------------------
 function loadImage(src) {
   const img = new Image();
+  // 別ドメインから配信時はCORSが必要: img.crossOrigin = 'anonymous';
+  img.onload = () => { setStatus(`✅ loaded: ${src}`); draw(); };
+  img.onerror = () => { setStatus(`❌ error: ${src}`); draw(); };
   img.src = src;
   return img;
 }
 
 const images = {
   floor: loadImage('./assets/images/tanbo.png'), // 床
-  wall: loadImage('./assets/images/wall.png'),   // 壁
+  wall:  loadImage('./assets/images/wall.png'),  // 壁
   enemy: loadImage('./assets/images/enemy.png'), // 敵
-  item: loadImage('./assets/images/item.png'),   // アイテム
-  ally: loadImage('./assets/images/ally.png'),   // 味方
-  goal: loadImage('./assets/images/goal.png'),   // ゴール
-  pl: loadImage('./assets/images/noumin.png')    // プレイヤー
+  item:  loadImage('./assets/images/item.png'),  // アイテム
+  ally:  loadImage('./assets/images/ally.png'),  // 味方
+  goal:  loadImage('./assets/images/goal.png'),  // ゴール
+  pl:    loadImage('./assets/images/noumin.png') // プレイヤー
 };
 
 // -----------------------------
@@ -89,15 +88,13 @@ function walkable(x, y) {
 // HP管理
 // -----------------------------
 function takeDamage(amount = 1) {
-  player.hearts -= amount;
-  if (player.hearts < 0) player.hearts = 0;
+  player.hearts = Math.max(0, player.hearts - amount);
   draw();
   setStatus(`💔 HP: ${player.hearts}/${player.maxHearts}`);
 }
 
 function heal(amount = 1) {
-  player.hearts += amount;
-  if (player.hearts > player.maxHearts) player.hearts = player.maxHearts;
+  player.hearts = Math.min(player.maxHearts, player.hearts + amount);
   draw();
   setStatus(`❤️ HP: ${player.hearts}/${player.maxHearts}`);
 }
@@ -122,21 +119,19 @@ function onTile(x, y) {
 }
 
 // -----------------------------
-// キー入力（ここを全面修正）
+// キー入力（capture で先取り / フォーカス付与）
 // -----------------------------
-// 他スクリプトに先取りされても確実に拾えるよう capture:true / passive:false で登録
-// またキャンバスにフォーカス可能化して初期フォーカスを当てる
-(function setupInput() {                                                // [ADDED]
-  if (!canvas.hasAttribute('tabindex')) canvas.setAttribute('tabindex', '0'); // [ADDED]
-  setTimeout(() => canvas.focus(), 0);                                         // [ADDED]
-  canvas.addEventListener('click', () => canvas.focus());                      // [ADDED]
+(function setupInput() {
+  if (!canvas.hasAttribute('tabindex')) canvas.setAttribute('tabindex', '0');
+  setTimeout(() => canvas.focus(), 0);
+  canvas.addEventListener('click', () => canvas.focus());
 
-  const KEY = new Set([                                                        // [ADDED]
+  const KEY = new Set([
     'ArrowUp','ArrowDown','ArrowLeft','ArrowRight',
     'w','a','s','d','W','A','S','D'
   ]);
 
-  function onKey(e) {                                                          // [ADDED]
+  function onKey(e) {
     if (!KEY.has(e.key)) return;
     e.preventDefault();
     e.stopPropagation();
@@ -155,13 +150,9 @@ function onTile(x, y) {
       draw();
     }
   }
-
-  document.addEventListener('keydown', onKey, { capture: true, passive: false }); // [ADDED]
-  window.addEventListener('keydown', onKey,   { capture: true, passive: false }); // [ADDED]
-})(); // [ADDED]
-
-// （元のキー入力リスナーは削除）
-// window.addEventListener('keydown', e => { ... });
+  document.addEventListener('keydown', onKey, { capture: true, passive: false });
+  window.addEventListener('keydown',   onKey, { capture: true, passive: false });
+})();
 
 // -----------------------------
 // ライフゲージ描画
@@ -178,18 +169,19 @@ function drawLifeGauge() {
 }
 
 // -----------------------------
-// 描画（スクロール対応）
+// 描画（スクロール対応、画像未読込のフォールバック付き）
 // -----------------------------
+function ready(img) { return !!(img && img.complete && img.naturalWidth); }
+
 function draw() {
+  // 背景クリア（透明→ページ背景色のままになる場合は色塗りしたいなら fillRect でもOK）
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // プレイヤー中心に表示範囲を決定
   let offsetX = player.x - Math.floor(VIEW_COLS / 2);
   let offsetY = player.y - Math.floor(VIEW_ROWS / 2);
-
-  // （安全側に微修正：負値や過大を二重にケア）
-  offsetX = Math.max(0, Math.min(offsetX, Math.max(0, COLS - VIEW_COLS))); // [CHANGED]
-  offsetY = Math.max(0, Math.min(offsetY, Math.max(0, ROWS - VIEW_ROWS))); // [CHANGED]
+  offsetX = Math.max(0, Math.min(offsetX, Math.max(0, COLS - VIEW_COLS)));
+  offsetY = Math.max(0, Math.min(offsetY, Math.max(0, ROWS - VIEW_ROWS)));
 
   // マップ描画
   for (let y = 0; y < VIEW_ROWS; y++) {
@@ -201,29 +193,42 @@ function draw() {
       const t = GRID[mapY][mapX];
       const dx = x * TILE, dy = y * TILE;
 
-      // 床
-      ctx.drawImage(images.floor, dx, dy, TILE, TILE);
+      // 床：画像がまだなら淡い緑で塗る
+      if (ready(images.floor)) ctx.drawImage(images.floor, dx, dy, TILE, TILE);
+      else { ctx.fillStyle = '#cfeec0'; ctx.fillRect(dx, dy, TILE, TILE); }
 
-      // 上書きタイル
-      if (t === '#') ctx.drawImage(images.wall, dx, dy, TILE, TILE);
-      else if (t === 'E') ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
-      else if (t === 'I') ctx.drawImage(images.item, dx, dy, TILE, TILE);
-      else if (t === 'A') ctx.drawImage(images.ally, dx, dy, TILE, TILE);
-      else if (t === 'G') ctx.drawImage(images.goal, dx, dy, TILE, TILE);
+      // 上書きタイル：それぞれ画像が無ければ色で代替
+      if (t === '#') {
+        if (ready(images.wall)) ctx.drawImage(images.wall, dx, dy, TILE, TILE);
+        else { ctx.fillStyle = '#556b2f'; ctx.fillRect(dx, dy, TILE, TILE); }
+      } else if (t === 'E') {
+        if (ready(images.enemy)) ctx.drawImage(images.enemy, dx, dy, TILE, TILE);
+        else { ctx.fillStyle = '#8b0000'; ctx.fillRect(dx, dy, TILE, TILE); }
+      } else if (t === 'I') {
+        if (ready(images.item)) ctx.drawImage(images.item, dx, dy, TILE, TILE);
+        else { ctx.fillStyle = '#daa520'; ctx.fillRect(dx, dy, TILE, TILE); }
+      } else if (t === 'A') {
+        if (ready(images.ally)) ctx.drawImage(images.ally, dx, dy, TILE, TILE);
+        else { ctx.fillStyle = '#1e90ff'; ctx.fillRect(dx, dy, TILE, TILE); }
+      } else if (t === 'G') {
+        if (ready(images.goal)) ctx.drawImage(images.goal, dx, dy, TILE, TILE);
+        else { ctx.fillStyle = '#32cd32'; ctx.fillRect(dx, dy, TILE, TILE); }
+      }
     }
   }
 
-  // プレイヤー描画
+  // プレイヤー：未読込なら濃い緑の四角
   const px = (player.x - offsetX) * TILE;
   const py = (player.y - offsetY) * TILE;
-  ctx.drawImage(images.pl, px, py, TILE, TILE);
+  if (ready(images.pl)) ctx.drawImage(images.pl, px, py, TILE, TILE);
+  else { ctx.fillStyle = '#2b8a3e'; ctx.fillRect(px + 8, py + 8, TILE - 16, TILE - 16); }
 
   // HPライフゲージ
   drawLifeGauge();
 }
 
 // -----------------------------
-// 初回描画
+// 初回描画（ロード前でもフォールバックで見える）
 // -----------------------------
 setStatus('✅ ゲーム開始');
 draw();
