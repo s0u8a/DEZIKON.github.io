@@ -50,7 +50,7 @@ for (let y = 0; y < ROWS; y++) {
 }
 
 // -----------------------------
-// 敵の管理（上下左右ランダム移動 + ドクドク）
+// 敵の管理（上下左右ランダム移動）
 // -----------------------------
 const enemies = [];
 for (let y = 0; y < ROWS; y++) {
@@ -77,17 +77,14 @@ function loadImage(src) {
 }
 
 const images = {
-
   floor: loadImage('./assets/images/tanbo.png'),
   wall:  loadImage('./assets/images/mizu.png'),
   enemy: loadImage('./assets/images/enemy.png'),
-  item:  loadImage('./assets/images/komebukuro.png'), // ← 修正：米袋
-  ally:  loadImage('./assets/images/murabitopng.png'), // ← 修正：村人
+  item:  loadImage('./assets/images/komebukuro.png'), // ← 米袋
+  ally:  loadImage('./assets/images/murabitopng.png'), // ← 村人
   goal:  loadImage('./assets/images/goal.png'),
   pl:    loadImage('./assets/images/noumin.png'),
   heart: loadImage('./assets/images/ha-to.png')
-
-
 };
 
 // -----------------------------
@@ -107,7 +104,7 @@ function takeDamage(amount = 1) {
 
   player.hearts -= amount;
   if (player.hearts < 0) player.hearts = 0;
-  player.invincibleTime = 10; // 10ターン無敵（調整可）
+  player.invincibleTime = 10; // 10ターン無敵
 
   setStatus(`💔 HP: ${player.hearts}/${player.maxHearts}`);
 }
@@ -128,7 +125,7 @@ function onTile(x, y) {
     heal(1);
     GRID[y][x] = '0';
   } else if (t === 'A') {
-    setStatus('🤝 味方に会った！');
+    setStatus('🤝 村人に会った！');
   } else if (t === 'G') {
     setStatus('🏁 ゴール！');
   }
@@ -271,7 +268,7 @@ function draw() {
     }
   }
 
-  // 敵の描画（鼓動アニメーション付き）
+  // 敵の描画
   drawEnemies(offsetX, offsetY);
 
   // プレイヤー描画
