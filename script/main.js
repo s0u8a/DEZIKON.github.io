@@ -44,6 +44,7 @@ for (let y = 0; y < ROWS; y++) {
     if (GRID[y][x] === 'S') {
       player.x = x;
       player.y = y;
+      GRID[y][x] = '0'; // ← プレイヤー位置は床に置き換え
     }
   }
 }
@@ -61,7 +62,7 @@ for (let y = 0; y < ROWS; y++) {
       ];
       const dir = dirs[Math.floor(Math.random() * dirs.length)];
       enemies.push({ x: x, y: y, dx: dir.dx, dy: dir.dy });
-      GRID[y][x] = '0'; // マップからは消す
+      GRID[y][x] = '0'; // ← 敵位置も床に置き換え
     }
   }
 }
