@@ -15,11 +15,10 @@ function setStatus(msg) {
   console.log(msg);
 }
 
-// -----------------------------
-// 表示範囲（マップ全体表示固定）
-// -----------------------------
-const VIEW_COLS = COLS;
-const VIEW_ROWS = ROWS;
+// 表示範囲（スクロール用）
+// ★ 全体表示にしたいなら COLS / ROWS をそのまま使う
+const VIEW_COLS = 10;  // ← 全体表示するなら COLS
+const VIEW_ROWS = 8;   // ← 全体表示するなら ROWS
 canvas.width  = VIEW_COLS * TILE;
 canvas.height = VIEW_ROWS * TILE;
 
@@ -140,19 +139,26 @@ function drawLifeGauge() {
 }
 
 // -----------------------------
-// 描画（全体表示固定）
+// 描画（スクロール対応）
 // -----------------------------
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // オフセットは常に 0
-  let offsetX = 0;
-  let offsetY = 0;
+  // プレイヤー中心に表示範囲を決定
+  let offsetX = player.x - Math.floor(VIEW_COLS / 2);
+  let offsetY = player.y - Math.floor(VIEW_ROWS / 2);
+
+  offsetX = Math.max(0, Math.min(offsetX, COLS - VIEW_COLS));
+  offsetY = Math.max(0, Math.min(offsetY, ROWS - VIEW_ROWS));
 
   // マップ描画
   for (let y = 0; y < VIEW_ROWS; y++) {
     for (let x = 0; x < VIEW_COLS; x++) {
-      const t = GRID[y][x];
+      const mapX = x + offsetX;
+      const mapY = y + offsetY;
+      if (mapX >= COLS || mapY >= ROWS) continue;
+
+      const t = GRID[mapY][mapX];
       const dx = x * TILE, dy = y * TILE;
 
       // 床
