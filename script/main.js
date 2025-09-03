@@ -17,8 +17,8 @@ function setStatus(msg) {
 
 // 表示範囲（スクロール用）
 // ★ 全体表示にしたいなら COLS / ROWS をそのまま使う
-const VIEW_COLS = 10;  // ← 全体表示するなら COLS
-const VIEW_ROWS = 8;   // ← 全体表示するなら ROWS
+const VIEW_COLS = COLS;  // ← 全体表示するなら COLS
+const VIEW_ROWS = ROWS;   // ← 全体表示するなら ROWS
 canvas.width  = VIEW_COLS * TILE;
 canvas.height = VIEW_ROWS * TILE;
 
