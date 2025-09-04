@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="stylesheet" href="./css/style.css" />
-  <title>🌾 新潟RPG デモ版</title>
+<meta charset="UTF-8">
+<title>🌾 新潟RPG デモ版</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="startScreen">
-    <h1>🌸 新潟RPG デモ版</h1>
-    <p>矢印キーで移動。敵に当たるとダメージ。米袋で回復。</p>
-    <button id="startBtn">ゲームスタート</button>
-  </div>
-
-  <canvas id="gameCanvas"></canvas>
-  <div id="status" aria-live="polite"></div>
-
-  <!-- 非モジュール：読み込み順が依存関係になります -->
-  <script src="script/map.js" defer></script>
-  <script src="script/player.js" defer></script>
-  <script src="script/enemy.js" defer></script>
-  <script src="script/ending.js" defer></script>
-  <script src="script/game.js" defer></script>
-
-
+<h1>🌸 新潟RPG デモ版</h1>
+<p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
+ 
+  <!-- ゲーム画面 -->
+<canvas id="gameCanvas" width="480" height="320"></canvas>
+ 
+  <!-- メッセージ表示領域 -->
+<div id="messageBox"></div>
+ 
+  <!-- ゲーム用スクリプト -->
+  <script src="script/map.js"></script>
+<script src="script/player.js"></script>
+<script src="script/enemy.js"></script>
+<script src="script/ending.js"></script>
+<script src="script/game.js"></script>
+  
 </body>
 </html>
+ 
