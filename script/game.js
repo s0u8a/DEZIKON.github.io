@@ -1,6 +1,6 @@
 // script/game.js
 import { map, tile } from "./map.js";
-import { player, initPlayer, takeDamage } from "./player.js";
+import { player, initPlayer, takeDamage, drawLifeGauge } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
 
@@ -89,6 +89,9 @@ function draw() {
 
   // プレイヤー描画
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
+
+  // ハート描画（鼓動アニメ）
+  drawLifeGauge(ctx, images.heart);
 
   requestAnimationFrame(draw);
 }
