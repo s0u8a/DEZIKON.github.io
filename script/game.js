@@ -1,5 +1,5 @@
 import { map, tile } from "./map.js";
-import { player, initPlayer, takeDamage, drawLifeGauge, updatePlayer } from "./player.js";
+import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
 
@@ -22,7 +22,7 @@ function loadImage(src) {
 
 const images = {
   floor: loadImage("./assets/images/tanbo3.png"),
-  wall:  loadImage("./assets/images/mizu_big.png"),
+  wall:  loadImage("./assets/images/mizu.png"),
   enemy: loadImage("./assets/images/enemy.png"),
   item:  loadImage("./assets/images/komebukuro.png"),
   ally:  loadImage("./assets/images/murabitopng.png"),
@@ -30,6 +30,10 @@ const images = {
   pl:    loadImage("./assets/images/noumin.png"),
   heart: loadImage("./assets/images/ha-to.png")
 };
+
+// 初期化
+initPlayer(map);
+initEnemies(map);
 
 // Retina対応
 const dpr = window.devicePixelRatio || 1;
@@ -65,9 +69,7 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// -----------------------------
-// 描画ループ（壁と床を分離）
-// -----------------------------
+// 描画ループ
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -75,51 +77,30 @@ function draw() {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile;
       const dy = y * tile;
-      const cell = map[y][x];
 
-      if (cell === '0' || cell === 'S') {
-        // 床だけ
-        ctx.drawImage(images.floor, dx, dy, tile, tile);
-      } else if (cell === '#') {
-        // 壁だけ
-        ctx.drawImage(images.wall, dx, dy, tile, tile);
-      } else if (cell === 'I') {
-        // アイテム + 床
-        ctx.drawImage(images.floor, dx, dy, tile, tile);
-        ctx.drawImage(images.item, dx, dy, tile, tile);
-      } else if (cell === 'A') {
-        // 村人 + 床
-        ctx.drawImage(images.floor, dx, dy, tile, tile);
-        ctx.drawImage(images.ally, dx, dy, tile, tile);
-      } else if (cell === 'G') {
-        // ゴール + 床
-        ctx.drawImage(images.floor, dx, dy, tile, tile);
-        ctx.drawImage(images.goal, dx, dy, tile, tile);
-      }
+      // タイルを整数座標で描画して余白をなくす
+      ctx.drawImage(images.floor, Math.floor(dx), Math.floor(dy), tile, tile);
+
+      const cell = map[y][x];
+      if (cell === '#') ctx.drawImage(images.wall, Math.floor(dx), Math.floor(dy), tile, tile);
+      if (cell === 'I') ctx.drawImage(images.item, Math.floor(dx), Math.floor(dy), tile, tile);
+      if (cell === 'A') ctx.drawImage(images.ally, Math.floor(dx), Math.floor(dy), tile, tile);
+      if (cell === 'G') ctx.drawImage(images.goal, Math.floor(dx), Math.floor(dy), tile, tile);
     }
   }
 
-  // 敵描画
   drawEnemies(ctx, images.enemy, tile, 0, 0, map[0].length * tile, map.length * tile);
 
-  // プレイヤー描画
-  ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
+  // プレイヤーを描画
+  ctx.drawImage(images.pl, Math.floor(player.x * tile), Math.floor(player.y * tile), tile, tile);
 
-  // ハート描画
-  drawLifeGauge(ctx, images.heart);
+  // ハートをプレイヤーの頭上に描画
+  drawLifeGauge(ctx, images.heart, tile, player);
 
-  // 無敵時間カウントダウン
-  updatePlayer();
+  updatePlayer(); // 無敵時間減少
 
   requestAnimationFrame(draw);
 }
 
-// -----------------------------
-// スタート画面から呼ばれる関数
-// -----------------------------
-window.startGame = function() {
-  initPlayer(map);
-  initEnemies(map);
-  setStatus("✅ ゲーム開始");
-  draw();
-};
+setStatus("✅ ゲーム開始");
+draw();
