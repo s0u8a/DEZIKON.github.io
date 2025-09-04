@@ -31,10 +31,6 @@ const images = {
   heart: loadImage("./assets/images/ha-to.png")
 };
 
-// 初期化
-initPlayer(map);
-initEnemies(map);
-
 // Retina対応
 const dpr = window.devicePixelRatio || 1;
 canvas.width = map[0].length * tile * dpr;
@@ -118,5 +114,12 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-setStatus("✅ ゲーム開始");
-draw();
+// -----------------------------
+// スタート画面から呼ばれる関数
+// -----------------------------
+window.startGame = function() {
+  initPlayer(map);
+  initEnemies(map);
+  setStatus("✅ ゲーム開始");
+  draw();
+};
