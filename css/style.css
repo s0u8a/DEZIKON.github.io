@@ -1,4 +1,9 @@
-
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>農民ゲーム</title>
+<style>
   body {
     font-family: sans-serif;
     background: #222;
@@ -19,4 +24,11 @@
     margin-top: 10px;
     font-size: 18px;
   }
-
+</style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="messageBox">✅ ゲーム開始</div>
+  <script type="module" src="./script/game.js"></script>
+</body>
+</html>
