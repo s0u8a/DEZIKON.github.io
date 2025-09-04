@@ -1,4 +1,4 @@
-import { map, tile } from "./map.js";
+import { maps, tile } from "./map.js";
 import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
@@ -31,16 +31,23 @@ const images = {
   heart: loadImage("./assets/images/ha-to.png")
 };
 
+// マップ管理 ← ★ここ追加
+
+let currentMapIndex = 0;          // 現在のマップ番号
+let map = maps[currentMapIndex];  // 最初のマップをセット
+
 // 初期化
 initPlayer(map);
 initEnemies(map);
 
 // Retina対応
 const dpr = window.devicePixelRatio || 1;
+function resizeCanvas() { // ← ★ここ追加（マップごとにサイズ更新）
 canvas.width = map[0].length * tile * dpr;
 canvas.height = map.length * tile * dpr;
 canvas.style.width = map[0].length * tile + "px";
 canvas.style.height = map.length * tile + "px";
+ctx.setTransform(1, 0, 0, 1, 0, 0); // スケールリセット ← ★ここ追加
 ctx.scale(dpr, dpr);
 
 // 移動判定
@@ -49,6 +56,20 @@ function walkable(x, y) {
   return map[y][x] !== '#';
 }
 
+// マップ切り替え処理 ← ★ここ追加
+function nextMap() {
+  currentMapIndex++;
+  if (currentMapIndex >= maps.length) {
+    setStatus("🎉 全クリア！！");
+    return;
+  }
+  map = maps[currentMapIndex]; // 新しいマップに更新
+  initPlayer(map);
+  initEnemies(map);
+  resizeCanvas(); // キャンバスサイズを更新
+  setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
+}
+  
 // キー操作
 document.addEventListener("keydown", e => {
   let nx = player.x, ny = player.y;
@@ -62,7 +83,10 @@ document.addEventListener("keydown", e => {
     player.x = nx;
     player.y = ny;
 
+     // ゴール判定 ← ★ここ変更
     if (checkGoal(map, player.x, player.y)) setStatus("🏁 ゴール！");
+    nextMap(); // ゴールで次マップへ ← ★ここ追加
+      return;
 
     updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
     if (checkGameOver(player, setStatus)) return;
