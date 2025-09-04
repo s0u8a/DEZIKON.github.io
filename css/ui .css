@@ -1,6 +1,6 @@
 body {
   font-family: Arial, sans-serif;
-  background-image: url(img/enemy.png);
+  background-image: url(./assets/imges/enemy.png);
   background-repeat: no-repeat;
   display: flex;
   justify-content: center;
