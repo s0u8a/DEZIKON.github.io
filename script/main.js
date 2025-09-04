@@ -8,7 +8,6 @@ let COLS = GRID[0]?.length ?? 0;
 
 const canvas = document.getElementById('gameCanvas');
 canvas.setAttribute('tabindex', '0'); 
-canvas.focus();
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
 
@@ -283,7 +282,10 @@ function draw() {
 }
 
 // -----------------------------
-// 初回描画開始
+// ゲーム開始関数（スタート画面から呼ぶ）
 // -----------------------------
-setStatus('✅ ゲーム開始');
-draw();
+window.startGame = function() {
+  canvas.focus();
+  setStatus('✅ ゲーム開始');
+  draw();
+};
