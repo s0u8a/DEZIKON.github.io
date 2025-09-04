@@ -1,27 +1,21 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>🌾 新潟RPG デモ版</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>🌾 新潟RPG デモ版</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>🌸 新潟RPG デモ版</h1>
-<p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
+  <h1>🌸 新潟RPG デモ版</h1>
+  <p>矢印キーで移動できます。敵にぶつかるとクイズが出ます。</p>
  
   <!-- ゲーム画面 -->
-<canvas id="gameCanvas" width="480" height="320"></canvas>
+  <canvas id="gameCanvas" width="640" height="480"></canvas>
  
   <!-- メッセージ表示領域 -->
-<div id="messageBox"></div>
+  <div id="messageBox"></div>
  
-  <!-- ゲーム用スクリプト -->
-  <script src="script/map.js"></script>
-<script src="script/player.js"></script>
-<script src="script/enemy.js"></script>
-<script src="script/ending.js"></script>
-<script src="script/game.js"></script>
-  
+  <!-- ゲーム用スクリプト（モジュール方式で統一） -->
+  <script type="module" src="script/game.js"></script>
 </body>
 </html>
- 
