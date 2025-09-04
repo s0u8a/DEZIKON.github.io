@@ -56,7 +56,3 @@ export function drawEnemies(ctx, imgEnemy, TILE, offsetX, offsetY, canvasW, canv
     ctx.drawImage(imgEnemy, dx + off, dy + off, size, size);
   }
 }
-
-export function getEnemies() {
-  return enemies;
-}
