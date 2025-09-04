@@ -22,7 +22,7 @@ function loadImage(src) {
 
 const images = {
   floor: loadImage("./assets/images/tanbo3.png"),
-  wall:  loadImage("./assets/images/mizu.png"),
+  wall:  loadImage("./assets/images/mizu_big.png"),
   enemy: loadImage("./assets/images/enemy.png"),
   item:  loadImage("./assets/images/komebukuro.png"),
   ally:  loadImage("./assets/images/murabitopng.png"),
