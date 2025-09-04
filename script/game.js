@@ -21,7 +21,7 @@ function loadImage(src) {
 }
 
 const images = {
-  floor: loadImage("./assets/images/tanbo.png"),
+  floor: loadImage("./assets/images/tanbo3.png"),
   wall:  loadImage("./assets/images/mizu.png"),
   enemy: loadImage("./assets/images/enemy.png"),
   item:  loadImage("./assets/images/komebukuro.png"),
