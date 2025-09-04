@@ -3,21 +3,18 @@ body {
   background: #222;
   color: #fff;
   text-align: center;
+  margin: 0;
+  padding: 0;
 }
 
-#game {
-  display: inline-block;
-  margin-top: 20px;
+canvas {
+  display: block;
+  margin: 20px auto;
+  border: 2px solid #555;
+  background: #000; /* マップ外を黒で塗る */
 }
 
-.row {
-  display: flex;
+#messageBox {
+  margin-top: 10px;
+  font-size: 18px;
 }
-
-.tile {
-  width: 64px;   /* TILE に合わせる */
-  height: 64px;
-  border: 1px solid #333;
-  background-size: cover;  /* 画像を枠いっぱいに敷き詰める */
-}
-
