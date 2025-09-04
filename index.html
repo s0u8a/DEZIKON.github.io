@@ -5,58 +5,47 @@
   <link rel="stylesheet" href="./css/style.css" />
   <title>🌾 新潟RPG デモ版</title>
   <style>
-    /* スタート画面（シンプル） */
-    #startScreen {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.95);
-      z-index: 10; text-align: center;
+    #startScreen{
+      position:fixed; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:12px;
+      background:rgba(255,255,255,.95); z-index:10; text-align:center;
     }
-    #startScreen h1 { margin: 0 0 8px; }
-    #startScreen p { margin: 0 0 16px; }
-    #startScreen button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    /* 最初はゲーム画面を隠す */
-    #gameCanvas, #status { display: none; }
+    #startScreen button{ padding:10px 20px; font-size:16px; cursor:pointer; }
+    /* 最初はゲームUIを隠す */
+    #gameCanvas, #status{ display:none; }
   </style>
 </head>
 <body>
-  <!-- スタート画面 -->
   <div id="startScreen">
     <h1>🌸 新潟RPG デモ版</h1>
-    <p>矢印キーで移動。敵に当たるとダメージ。アイテムで回復。</p>
+    <p>矢印キーで移動。敵に当たるとダメージ。米袋で回復。</p>
     <button id="startBtn">ゲームスタート</button>
   </div>
 
-  <!-- ゲーム画面 -->
   <canvas id="gameCanvas"></canvas>
   <div id="status" aria-live="polite"></div>
 
-  <!-- 非モジュール。順序厳守！ -->
+  <!-- 非モジュール：読み込み順が依存関係になります -->
   <script src="script/map.js" defer></script>
   <script src="script/player.js" defer></script>
   <script src="script/enemy.js" defer></script>
   <script src="script/ending.js" defer></script>
   <script src="script/game.js" defer></script>
 
-  <!-- スタート画面制御 -->
   <script defer>
-    document.addEventListener("DOMContentLoaded", () => {
-      const startScreen = document.getElementById("startScreen");
-      const startBtn = document.getElementById("startBtn");
-      const canvas = document.getElementById("gameCanvas");
-      const statusEl = document.getElementById("status");
+    document.addEventListener('DOMContentLoaded', () => {
+      const startScreen = document.getElementById('startScreen');
+      const startBtn    = document.getElementById('startBtn');
+      const canvas      = document.getElementById('gameCanvas');
+      const statusEl    = document.getElementById('status');
 
-      startBtn.addEventListener("click", () => {
-        startScreen.style.display = "none";
-        canvas.style.display = "block";
-        statusEl.style.display = "block";
-        if (typeof window.startGame === "function") {
-          window.startGame();
-        }
+      startBtn.addEventListener('click', () => {
+        startScreen.style.display = 'none';
+        canvas.style.display = 'block';
+        statusEl.style.display = 'block';
+        if (typeof window.startGame === 'function') window.startGame();
       });
     });
   </script>
 </body>
 </html>
-
