@@ -1,7 +1,8 @@
 // script/enemy.js
-window.enemies = [];
+let enemies = [];
+let enemyAnim = 0;
 
-window.initEnemies = function initEnemies(GRID) {
+export function initEnemies(GRID) {
   enemies.length = 0;
   for (let y = 0; y < GRID.length; y++) {
     for (let x = 0; x < GRID[0].length; x++) {
@@ -16,9 +17,9 @@ window.initEnemies = function initEnemies(GRID) {
       }
     }
   }
-};
+}
 
-window.updateEnemies = function updateEnemies(walkable) {
+export function updateEnemies(walkable, player, takeDamage) {
   for (let e of enemies) {
     const nx = e.x + e.dx;
     const ny = e.y + e.dy;
@@ -40,20 +41,22 @@ window.updateEnemies = function updateEnemies(walkable) {
   }
 
   if (player.invincibleTime > 0) player.invincibleTime--;
-};
+}
 
-let enemyAnim = 0;
-window.drawEnemies = function drawEnemies(ctx, imgEnemy, TILE, offsetX, offsetY, canvasW, canvasH) {
+export function drawEnemies(ctx, imgEnemy, TILE, offsetX, offsetY, canvasW, canvasH) {
   enemyAnim++;
   for (let e of enemies) {
     const dx = (e.x - offsetX) * TILE;
     const dy = (e.y - offsetY) * TILE;
     if (dx + TILE < 0 || dy + TILE < 0 || dx > canvasW || dy > canvasH) continue;
 
-    // ドクドク
     const pulse = 1 + 0.1 * Math.sin(enemyAnim * 0.1);
     const size = TILE * pulse;
     const off = (TILE - size) / 2;
     ctx.drawImage(imgEnemy, dx + off, dy + off, size, size);
   }
-};
+}
+
+export function getEnemies() {
+  return enemies;
+}
