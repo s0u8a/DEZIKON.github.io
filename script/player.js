@@ -6,6 +6,8 @@ export let player = {
   invincibleTime: 0
 };
 
+let animationFrame = 0; // ハートアニメ用カウンタ
+
 export function initPlayer(GRID) {
   for (let y = 0; y < GRID.length; y++) {
     for (let x = 0; x < GRID[0].length; x++) {
@@ -32,5 +34,33 @@ export function heal(amount = 1, setStatus) {
   player.hearts = Math.min(player.maxHearts, player.hearts + amount);
   if (typeof setStatus === 'function') {
     setStatus(`❤️ HP: ${player.hearts}/${player.maxHearts}`);
+  }
+}
+
+/**
+ * ライフゲージ描画（鼓動アニメ付き）
+ */
+export function drawLifeGauge(ctx, heartImg) {
+  const startX = 10, startY = 10, baseSize = 32, gap = 8;
+  animationFrame++;
+
+  for (let i = 0; i < player.maxHearts; i++) {
+    const dx = startX + i * (baseSize + gap);
+    const dy = startY;
+
+    if (i < player.hearts) {
+      let pulse = (player.hearts <= 1)
+        ? 1 + 0.3 * Math.sin(animationFrame * 0.2) // 瀕死でドクドク強調
+        : 1 + 0.1 * Math.sin(animationFrame * 0.1);
+
+      let size = baseSize * pulse;
+      const offset = (baseSize - size) / 2;
+
+      ctx.drawImage(heartImg, dx + offset, dy + offset, size, size);
+    } else {
+      ctx.globalAlpha = 0.3;
+      ctx.drawImage(heartImg, dx, dy, baseSize, baseSize);
+      ctx.globalAlpha = 1.0;
+    }
   }
 }
