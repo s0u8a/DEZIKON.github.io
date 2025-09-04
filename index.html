@@ -4,6 +4,38 @@
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="./css/style.css" />
   <title>🌾 新潟RPG デモ版</title>
+  <style>
+    /* スタート画面のスタイル */
+    #startScreen {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      text-align: center;
+    }
+    #startScreen h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    #startScreen p {
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    #startScreen button {
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    /* ゲーム画面は最初は非表示 */
+    #gameCanvas, #status {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <!-- ▼スタート画面 -->
@@ -14,29 +46,37 @@
   </div>
   <!-- ▲スタート画面 -->
 
-  <!-- ゲーム本体 -->
-  <canvas id="gameCanvas" style="display:none;"></canvas>
+  <!-- ▼ゲーム本体 -->
+  <canvas id="gameCanvas"></canvas>
   <div id="status" aria-live="polite"></div>
+  <!-- ▲ゲーム本体 -->
 
-  <!-- 非モジュール。必ず map.js → main.js の順で、両方とも defer -->
+  <!-- 非モジュール。必ず map.js → main.js の順で defer -->
   <script src="script/map.js" defer></script>
   <script src="script/main.js" defer></script>
 
-  <!-- スタート画面制御用の追加スクリプト -->
+  <!-- ▼スタート画面制御用スクリプト -->
   <script defer>
     document.addEventListener("DOMContentLoaded", () => {
       const startScreen = document.getElementById("startScreen");
       const startBtn = document.getElementById("startBtn");
       const canvas = document.getElementById("gameCanvas");
+      const statusEl = document.getElementById("status");
 
       startBtn.addEventListener("click", () => {
-        startScreen.style.display = "none";  // スタート画面を隠す
-        canvas.style.display = "block";      // ゲーム画面を表示
+        // スタート画面を消す
+        startScreen.style.display = "none";
+        // ゲーム画面を表示
+        canvas.style.display = "block";
+        statusEl.style.display = "block";
+
+        // main.js の startGame() を呼ぶ
         if (typeof window.startGame === "function") {
-          window.startGame(); // main.js 内に定義した startGame() を呼ぶ
+          window.startGame();
         }
       });
     });
   </script>
+  <!-- ▲スタート画面制御用スクリプト -->
 </body>
 </html>
