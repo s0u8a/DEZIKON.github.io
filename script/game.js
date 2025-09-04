@@ -90,10 +90,9 @@ document.addEventListener("keydown", e => {
     nextMap(); // ゴールで次マップへ ← ★ここ追加
       return;
   }
-
+}
     updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
     if (checkGameOver(player, setStatus)) return;
-  }
 });
 
 // 描画ループ
