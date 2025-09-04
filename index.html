@@ -3,56 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <title>🌾 新潟RPG デモ版</title>
-  <link rel="stylesheet" href="css/style.css">
- <style>
-  #startScreen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url("assets/images/bandai.png") no-repeat center center;
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: sans-serif;
-    z-index: 10;
-    color: #000;
-    text-shadow: 1px 1px 2px #fff;
-    font-weight: bold; /* 文字を太く */
-  }
+  <style>
+    /* ページ全体リセット */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* スクロール禁止 */
+      width: 100%;
+      height: 100%;
+      font-family: sans-serif;
+      background: #222;
+      color: #fff;
+    }
 
-  #startScreen h1 {
-    font-size: 48px;
-    margin-bottom: 20px;
-    font-weight: bold; /* 見出しも太く */
-  }
+    /* スタート画面 */
+    #startScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url("assets/images/bandai.png") no-repeat center center;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+      z-index: 10;
+      color: #000;
+      text-shadow: 1px 1px 2px #fff;
+      font-weight: bold;
+    }
 
-  #startScreen p {
-    font-size: 18px;
-    margin: 5px 0;
-    font-weight: bold; /* 説明文も太く */
-  }
+    #startScreen h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
 
-  #startScreen button {
-    font-size: 24px;
-    padding: 10px 30px;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.8);
-    color: #000;
-    transition: 0.3s;
-    margin-top: 20px;
-    font-weight: bold; /* ボタン文字も太く */
-  }
+    #startScreen p {
+      font-size: 18px;
+      margin: 5px 0;
+    }
 
-  #startScreen button:hover {
-    background: rgba(200, 200, 200, 0.9);
-  }
-</style>
+    #startScreen button {
+      font-size: 24px;
+      padding: 10px 30px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      color: #000;
+      transition: 0.3s;
+      margin-top: 20px;
+    }
+
+    #startScreen button:hover {
+      background: rgba(200, 200, 200, 0.9);
+    }
+
+    /* ゲーム画面 */
+    #gameCanvas {
+      display: none; /* スタート画面後に表示 */
+      width: 100%;
+      height: 100%;
+      background: #222;
+    }
+
+    /* メッセージ表示 */
+    #messageBox {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 18px;
+      display: none; /* スタート画面後に表示 */
+    }
+  </style>
 </head>
 <body>
   <!-- スタート画面 -->
@@ -65,25 +95,27 @@
   </div>
 
   <!-- ゲーム画面 -->
-  <canvas id="gameCanvas" width="640" height="480"></canvas>
+  <canvas id="gameCanvas"></canvas>
 
-  <!-- メッセージ表示領域 -->
+  <!-- メッセージ表示 -->
   <div id="messageBox"></div>
 
   <!-- ゲーム用スクリプト -->
   <script type="module">
     import "./script/game.js";
 
-    // スタートボタンを押したら画面を切り替え
-    document.getElementById("startButton").addEventListener("click", () => {
-      document.getElementById("startScreen").style.display = "none";
-      document.getElementById("gameCanvas").style.display = "block";
-      document.getElementById("messageBox").style.display = "block";
+    const startScreen = document.getElementById("startScreen");
+    const canvas = document.getElementById("gameCanvas");
+    const messageBox = document.getElementById("messageBox");
 
-      // game.js 内の startGame() を呼び出す
-      if (window.startGame) {
-        window.startGame();
-      }
+    // スタートボタンでゲーム開始
+    document.getElementById("startButton").addEventListener("click", () => {
+      startScreen.style.display = "none";
+      canvas.style.display = "block";
+      messageBox.style.display = "block";
+
+      // game.js の startGame を呼び出す
+      if (window.startGame) window.startGame();
     });
   </script>
 </body>
