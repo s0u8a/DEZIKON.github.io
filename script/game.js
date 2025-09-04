@@ -6,6 +6,8 @@ import { checkGoal, checkGameOver } from "./ending.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false; // ★ ピクセル補間を無効化
+
 const statusEl = document.getElementById("messageBox");
 
 // ステータス表示
@@ -74,13 +76,14 @@ function draw() {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile, dy = y * tile;
 
-      ctx.drawImage(images.floor, dx, dy, tile, tile);
+      // 床タイル
+      ctx.drawImage(images.floor, Math.floor(dx), Math.floor(dy), tile, tile);
 
       const cell = map[y][x];
-      if (cell === '#') ctx.drawImage(images.wall, dx, dy, tile, tile);
-      if (cell === 'I') ctx.drawImage(images.item, dx, dy, tile, tile);
-      if (cell === 'A') ctx.drawImage(images.ally, dx, dy, tile, tile);
-      if (cell === 'G') ctx.drawImage(images.goal, dx, dy, tile, tile);
+      if (cell === '#') ctx.drawImage(images.wall, Math.floor(dx), Math.floor(dy), tile, tile);
+      if (cell === 'I') ctx.drawImage(images.item, Math.floor(dx), Math.floor(dy), tile, tile);
+      if (cell === 'A') ctx.drawImage(images.ally, Math.floor(dx), Math.floor(dy), tile, tile);
+      if (cell === 'G') ctx.drawImage(images.goal, Math.floor(dx), Math.floor(dy), tile, tile);
     }
   }
 
@@ -88,7 +91,7 @@ function draw() {
   drawEnemies(ctx, images.enemy, tile, 0, 0, canvas.width, canvas.height);
 
   // プレイヤー描画
-  ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
+  ctx.drawImage(images.pl, Math.floor(player.x * tile), Math.floor(player.y * tile), tile, tile);
 
   // ハート描画（鼓動アニメ）
   drawLifeGauge(ctx, images.heart);
