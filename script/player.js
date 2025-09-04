@@ -37,6 +37,11 @@ export function heal(amount = 1, setStatus) {
   }
 }
 
+// 無敵時間減少
+export function updatePlayer() {
+  if (player.invincibleTime > 0) player.invincibleTime--;
+}
+
 /**
  * ライフゲージ描画（鼓動アニメ付き）
  */
