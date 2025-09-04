@@ -49,6 +49,8 @@ canvas.style.width = map[0].length * tile + "px";
 canvas.style.height = map.length * tile + "px";
 ctx.setTransform(1, 0, 0, 1, 0, 0); // スケールリセット ← ★ここ追加
 ctx.scale(dpr, dpr);
+}
+resizeCanvas(); // 初回実行
 
 // 移動判定
 function walkable(x, y) {
@@ -87,6 +89,7 @@ document.addEventListener("keydown", e => {
     if (checkGoal(map, player.x, player.y)) setStatus("🏁 ゴール！");
     nextMap(); // ゴールで次マップへ ← ★ここ追加
       return;
+  }
 
     updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
     if (checkGameOver(player, setStatus)) return;
