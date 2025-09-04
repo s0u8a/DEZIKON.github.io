@@ -129,5 +129,15 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-setStatus("✅ ゲーム開始");
-draw();
+// ------------------------------
+// スタートボタンから呼ばれる関数 ← ★追加
+// ------------------------------
+window.startGame = function() {
+  currentMapIndex = 0;
+  map = maps[currentMapIndex];
+  initPlayer(map);
+  initEnemies(map);
+  resizeCanvas();
+  setStatus("✅ ゲーム開始");
+  draw();
+};
