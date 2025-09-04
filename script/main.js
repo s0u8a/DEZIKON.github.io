@@ -78,7 +78,7 @@ function loadImage(src) {
 
 const images = {
   floor: loadImage('./assets/images/tanbo.png'),
-  wall:  loadImage('./assets/images/mizu.png'),
+  wall:  loadImage('./assets/images/mizu2.png'),
   enemy: loadImage('./assets/images/enemy.png'),
   item:  loadImage('./assets/images/komebukuro.png'), // ← 米袋
   ally:  loadImage('./assets/images/murabitopng.png'), // ← 村人
