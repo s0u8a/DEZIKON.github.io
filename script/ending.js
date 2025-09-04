@@ -1,27 +1,25 @@
 // script/ending.js
-window.checkGoal = function checkGoal(GRID, x, y) {
+export function checkGoal(GRID, x, y) {
   return GRID[y][x] === 'G';
-};
+}
 
-window.nextMap = function nextMap(state) {
-  const { MAPS, currentMapIndexRef } = state;
+export function nextMap(state) {
+  const { MAPS, currentMapIndexRef, setStatus, reloadMap } = state;
   if (currentMapIndexRef.value + 1 < MAPS.length) {
     currentMapIndexRef.value++;
-    if (typeof state.reloadMap === 'function') state.reloadMap();
-    if (typeof window.setStatus === 'function') {
+    if (typeof reloadMap === 'function') reloadMap();
+    if (typeof setStatus === 'function') {
       setStatus(`🌍 マップ ${currentMapIndexRef.value + 1} に移動！`);
     }
   } else {
-    if (typeof window.setStatus === 'function') setStatus('🎉 全マップクリア！');
-    // ここでエンディング演出などを入れてもOK
+    if (typeof setStatus === 'function') setStatus('🎉 全マップクリア！');
   }
-};
+}
 
-window.checkGameOver = function checkGameOver() {
+export function checkGameOver(player, setStatus) {
   if (player.hearts <= 0) {
-    if (typeof window.setStatus === 'function') setStatus('💀 ゲームオーバー');
+    if (typeof setStatus === 'function') setStatus('💀 ゲームオーバー');
     return true;
   }
   return false;
-};
-
+}
