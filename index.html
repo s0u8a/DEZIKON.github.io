@@ -4,6 +4,68 @@
   <meta charset="UTF-8">
   <title>🌾 新潟RPG デモ版</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* スクロール禁止 */
+    }
+
+    /* スタート画面 */
+    #startScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+      background: url("assets/images/start_bg.png") no-repeat center center;
+      background-size: cover;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      font-family: sans-serif;
+      z-index: 10;
+      color: #000;
+      text-shadow: 1px 1px 2px #fff;
+    }
+
+    #startScreen h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    #startScreen p {
+      font-size: 18px;
+      margin: 5px 0;
+    }
+
+    #startScreen button {
+      font-size: 24px;
+      padding: 10px 30px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      color: #000;
+      transition: 0.3s;
+      margin-top: 20px;
+    }
+
+    #startScreen button:hover {
+      background: rgba(200, 200, 200, 0.9);
+    }
+
+    /* ゲーム画面は最初非表示 */
+    #gameCanvas,
+    #messageBox {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <!-- スタート画面 -->
@@ -25,11 +87,13 @@
   <script type="module">
     import "./script/game.js";
 
+    // スタートボタンを押したら画面を切り替え
     document.getElementById("startButton").addEventListener("click", () => {
       document.getElementById("startScreen").style.display = "none";
       document.getElementById("gameCanvas").style.display = "block";
       document.getElementById("messageBox").style.display = "block";
 
+      // game.js 内の startGame() を呼び出す
       if (window.startGame) {
         window.startGame();
       }
