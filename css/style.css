@@ -1,34 +1,21 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>農民ゲーム</title>
-<style>
-  body {
-    font-family: sans-serif;
-    background: #222;
-    color: #fff;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-  }
+body {
+  font-family: sans-serif;
+  background: #222;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  padding: 0;
 
-  canvas {
-    display: block;
-    margin: 0 auto;   /* 余白ゼロ */
-    border: 0;        /* ボーダーなし */
-    background: #000; /* マップ外を黒 */
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* 横方向の中央寄せ */
+  justify-content: flex-start; /* 縦は上寄せ（必要なら center に） */
+  min-height: 100vh;     /* 画面全体をカバー */
+}
 
-  #messageBox {
-    margin-top: 10px;
-    font-size: 18px;
-  }
-</style>
-</head>
-<body>
-  <canvas id="gameCanvas"></canvas>
-  <div id="messageBox">✅ ゲーム開始</div>
-  <script type="module" src="./script/game.js"></script>
-</body>
-</html>
+#gameCanvas {
+  display: block;
+  margin: 20px auto;   /* 上下に余白を追加しつつ中央に */
+  background: #000;    /* デバッグ用に黒背景（不要なら消してOK） */
+}
+
