@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>🌾 新潟RPG デモ版</title>
+  <link rel="stylesheet" href="css/style.css">
   <style>
-    /* ページ全体リセット */
+    /* ページ全体を固定してスクロール不可に */
     html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden; /* スクロール禁止 */
       width: 100%;
       height: 100%;
+      overflow: hidden; /* スクロールバー非表示 */
       font-family: sans-serif;
-      background: #222;
-      color: #fff;
     }
 
     /* スタート画面 */
@@ -29,21 +28,24 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-family: sans-serif;
-      z-index: 10;
       color: #000;
       text-shadow: 1px 1px 2px #fff;
       font-weight: bold;
+      z-index: 10;
     }
 
     #startScreen h1 {
       font-size: 48px;
       margin-bottom: 20px;
+      font-weight: bold;
     }
 
     #startScreen p {
       font-size: 18px;
       margin: 5px 0;
+      font-weight: bold;
+      text-align: center;
+      max-width: 80%;
     }
 
     #startScreen button {
@@ -56,6 +58,7 @@
       color: #000;
       transition: 0.3s;
       margin-top: 20px;
+      font-weight: bold;
     }
 
     #startScreen button:hover {
@@ -64,23 +67,28 @@
 
     /* ゲーム画面 */
     #gameCanvas {
-      display: none; /* スタート画面後に表示 */
-      width: 100%;
-      height: 100%;
-      background: #222;
+      display: none; /* スタート前は非表示 */
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px solid #000;
+      background: #fff;
     }
 
     /* メッセージ表示 */
     #messageBox {
+      display: none; /* スタート前は非表示 */
       position: absolute;
-      bottom: 0;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.5);
+      background: rgba(255, 255, 255, 0.8);
       padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 18px;
-      display: none; /* スタート画面後に表示 */
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      max-width: 90%;
     }
   </style>
 </head>
@@ -95,27 +103,25 @@
   </div>
 
   <!-- ゲーム画面 -->
-  <canvas id="gameCanvas"></canvas>
+  <canvas id="gameCanvas" width="640" height="480"></canvas>
 
-  <!-- メッセージ表示 -->
+  <!-- メッセージ表示領域 -->
   <div id="messageBox"></div>
 
   <!-- ゲーム用スクリプト -->
   <script type="module">
     import "./script/game.js";
 
-    const startScreen = document.getElementById("startScreen");
-    const canvas = document.getElementById("gameCanvas");
-    const messageBox = document.getElementById("messageBox");
-
-    // スタートボタンでゲーム開始
+    // スタートボタンを押したら画面を切り替え
     document.getElementById("startButton").addEventListener("click", () => {
-      startScreen.style.display = "none";
-      canvas.style.display = "block";
-      messageBox.style.display = "block";
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("gameCanvas").style.display = "block";
+      document.getElementById("messageBox").style.display = "block";
 
-      // game.js の startGame を呼び出す
-      if (window.startGame) window.startGame();
+      // game.js 内の startGame() を呼び出す
+      if (window.startGame) {
+        window.startGame();
+      }
     });
   </script>
 </body>
