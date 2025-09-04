@@ -87,8 +87,8 @@ document.addEventListener("keydown", e => {
 
      // ゴール判定 ← ★ここ変更
     if (checkGoal(map, player.x, player.y)){ 
-    　setStatus("🏁 ゴール！");
-    nextMap(); // ゴールで次マップへ ← ★ここ追加
+　　　setStatus("🏁 ゴール！");
+  　　nextMap(); // ゴールで次マップへ ← ★ここ追加
       return;
   }
 }
