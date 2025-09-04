@@ -69,7 +69,9 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// 描画ループ
+// -----------------------------
+// 描画ループ（壁と床を分離）
+// -----------------------------
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -77,25 +79,41 @@ function draw() {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile;
       const dy = y * tile;
-
-      // タイルを整数座標で描画して余白をなくす
-      ctx.drawImage(images.floor, Math.floor(dx), Math.floor(dy), tile, tile);
-
       const cell = map[y][x];
-      if (cell === '#') ctx.drawImage(images.wall, Math.floor(dx), Math.floor(dy), tile, tile);
-      if (cell === 'I') ctx.drawImage(images.item, Math.floor(dx), Math.floor(dy), tile, tile);
-      if (cell === 'A') ctx.drawImage(images.ally, Math.floor(dx), Math.floor(dy), tile, tile);
-      if (cell === 'G') ctx.drawImage(images.goal, Math.floor(dx), Math.floor(dy), tile, tile);
+
+      if (cell === '0' || cell === 'S') {
+        // 床だけ
+        ctx.drawImage(images.floor, dx, dy, tile, tile);
+      } else if (cell === '#') {
+        // 壁だけ
+        ctx.drawImage(images.wall, dx, dy, tile, tile);
+      } else if (cell === 'I') {
+        // アイテム + 床
+        ctx.drawImage(images.floor, dx, dy, tile, tile);
+        ctx.drawImage(images.item, dx, dy, tile, tile);
+      } else if (cell === 'A') {
+        // 村人 + 床
+        ctx.drawImage(images.floor, dx, dy, tile, tile);
+        ctx.drawImage(images.ally, dx, dy, tile, tile);
+      } else if (cell === 'G') {
+        // ゴール + 床
+        ctx.drawImage(images.floor, dx, dy, tile, tile);
+        ctx.drawImage(images.goal, dx, dy, tile, tile);
+      }
     }
   }
 
+  // 敵描画
   drawEnemies(ctx, images.enemy, tile, 0, 0, map[0].length * tile, map.length * tile);
 
-  ctx.drawImage(images.pl, Math.floor(player.x * tile), Math.floor(player.y * tile), tile, tile);
+  // プレイヤー描画
+  ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
 
-  drawLifeGauge(ctx, images.heart); // 鼓動アニメ付き
+  // ハート描画
+  drawLifeGauge(ctx, images.heart);
 
-  updatePlayer(); // 無敵時間減少
+  // 無敵時間カウントダウン
+  updatePlayer();
 
   requestAnimationFrame(draw);
 }
