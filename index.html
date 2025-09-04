@@ -4,7 +4,14 @@
   <meta charset="UTF-8">
   <title>🌾 新潟RPG デモ版</title>
   <link rel="stylesheet" href="css/style.css">
- <style>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;  /* スクロール禁止 */
+  }
+
   /* スタート画面 */
   #startScreen {
     position: absolute;
@@ -13,18 +20,18 @@
     width: 100%;
     height: 100%;
 
-    /* 背景画像を追加 */
-    background: url("./assets/images/bandai.png") no-repeat center center;
-    background-size: cover;   /* 画面いっぱいに拡大縮小 */
+    background: url("./assets/images/start_bg.png") no-repeat center center;
+    background-size: cover;
 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
     font-family: "sans-serif";
     z-index: 10;
-    color: #000;   /* 全体の文字色を黒に */
-    text-shadow: 1px 1px 2px #fff; /* 文字が背景に埋もれないように白影 */
+    color: #000;   
+    text-shadow: 1px 1px 2px #fff;
   }
 
   #startScreen h1 {
@@ -38,13 +45,13 @@
     cursor: pointer;
     border: none;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.8); /* 半透明の白背景 */
-    color: #000;        /* 黒文字 */
+    background: rgba(255, 255, 255, 0.8);
+    color: #000;
     transition: 0.3s;
   }
 
   #startScreen button:hover {
-    background: rgba(200, 200, 200, 0.9); /* ホバー時に少し濃く */
+    background: rgba(200, 200, 200, 0.9);
   }
 </style>
 </head>
