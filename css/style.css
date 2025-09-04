@@ -8,14 +8,19 @@ body {
 
   display: flex;
   flex-direction: column;
-  align-items: center;   /* 横方向の中央寄せ */
-  justify-content: flex-start; /* 縦は上寄せ（必要なら center に） */
-  min-height: 100vh;     /* 画面全体をカバー */
+  align-items: center;       /* 横方向の中央寄せ */
+  justify-content: flex-start; /* 縦は上寄せ */
+  min-height: 100vh;         /* 画面全体をカバー */
 }
 
 #gameCanvas {
   display: block;
   margin: 20px auto;   /* 上下に余白を追加しつつ中央に */
-  background: #000;    /* デバッグ用に黒背景（不要なら消してOK） */
+  background: #000;    /* デバッグ用背景 */
 }
 
+#messageBox {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
