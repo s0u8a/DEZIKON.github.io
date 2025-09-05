@@ -4,6 +4,10 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startFishingGame(onFinish) {
   hideRPG();
 
+  // 既存のコンテナが残っていたら削除（←二重防止）
+  const old = document.getElementById("fishingGame");
+  if (old) old.remove();
+
   const container = document.createElement("div");
   container.id = "fishingGame";
   container.style.width = "760px";
@@ -15,10 +19,10 @@ export function startFishingGame(onFinish) {
   container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.3)";
 
   container.innerHTML = `
-    <h1 style="font-size:2em; margin-bottom:10px; color:#004;">🎣 ブラックバス釣りゲーム</h1>
-    <p style="margin:5px 0 15px; font-size:1.1em; color:#222;">
+    <h1 style="font-size:2em; margin-bottom:10px; color:#002;">🎣 ブラックバス釣りゲーム</h1>
+    <p style="margin:5px 0 15px; font-size:1.1em; color:#111;">
       敵に遭遇した！ブラックバスをできるだけ多く釣ろう！<br>
-      ブラックバス = 加点、それ以外 = 減点
+      ブラックバス＝加点、それ以外＝減点
     </p>
     <div class="hud" style="margin-bottom:10px;">
       <span class="pill">スコア: <b id="fg-hit">0</b></span>
@@ -36,28 +40,28 @@ export function startFishingGame(onFinish) {
   let time = 30;
   let timer;
 
-  // 🎨 魚の画像
-  const fishImages = {
-    bas: "./assets/images/bas.png",     // ブラックバス（加点）
-    ayu: "./assets/images/ayu.png",     // アユ（減点）
-    namazu: "./assets/images/namazu.png", // ナマズ（減点）
-    sake: "./assets/images/sake.png"    // サケ（減点）
-  };
-  const fishTypes = ["bas", "ayu", "namazu", "sake"];
+  const fishImages = [
+    { src: "./assets/images/bas.png", type: "bass" },
+    { src: "./assets/images/ayu.png", type: "other" },
+    { src: "./assets/images/namazu.png", type: "other" },
+    { src: "./assets/images/sake.png", type: "other" }
+  ];
 
   function spawnFish() {
-    const type = fishTypes[Math.floor(Math.random() * fishTypes.length)];
     const fish = document.createElement("img");
-    fish.src = fishImages[type];
-    fish.dataset.type = type;
+    const fishData = fishImages[Math.floor(Math.random() * fishImages.length)];
+    fish.src = fishData.src;
+    fish.dataset.type = fishData.type;
+
     fish.style.position = "absolute";
     fish.style.left = Math.random() * 700 + "px";
     fish.style.top = Math.random() * 360 + "px";
     fish.style.cursor = "pointer";
-    fish.style.width = "64px";
-    fish.style.height = "64px";
+    fish.style.width = "48px";
+    fish.style.height = "auto";
+
     fish.onclick = () => {
-      if (fish.dataset.type === "bas") {
+      if (fish.dataset.type === "bass") {
         score++;
       } else {
         score--;
@@ -65,12 +69,8 @@ export function startFishingGame(onFinish) {
       document.getElementById("fg-hit").textContent = score;
       fish.remove();
     };
-    document.getElementById("fg-pond").appendChild(fish);
 
-    // ⏱ 自然消滅（逃げる魚）
-    setTimeout(() => {
-      if (fish.parentNode) fish.remove();
-    }, 3000);
+    document.getElementById("fg-pond").appendChild(fish);
   }
 
   function tick() {
@@ -84,55 +84,49 @@ export function startFishingGame(onFinish) {
   }
 
   function endGame() {
-    // 🔹 モーダル用オーバーレイ
-    const overlay = document.createElement("div");
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.background = "rgba(0,0,0,0.7)";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.zIndex = "2000";
+    // 既存の解説モーダルを消してから作成（←二重防止）
+    const oldModal = document.getElementById("fg-modal");
+    if (oldModal) oldModal.remove();
 
-    // 🔹 解説カード（中央）
-    const explanation = document.createElement("div");
-    explanation.style.padding = "20px";
-    explanation.style.width = "600px";
-    explanation.style.background = "#fff";
-    explanation.style.border = "2px solid #444";
-    explanation.style.borderRadius = "12px";
-    explanation.style.fontSize = "1em";
-    explanation.style.color = "#222";
-    explanation.style.lineHeight = "1.6";
-    explanation.style.textAlign = "center";
-    explanation.innerHTML = `
-      <h2 style="margin-top:0; color:#004;">📖 信濃川の魚について</h2>
+    const modal = document.createElement("div");
+    modal.id = "fg-modal";
+    modal.style.position = "fixed";
+    modal.style.top = "50%";
+    modal.style.left = "50%";
+    modal.style.transform = "translate(-50%, -50%)";
+    modal.style.background = "#fff";
+    modal.style.padding = "20px";
+    modal.style.borderRadius = "10px";
+    modal.style.width = "600px";
+    modal.style.color = "#111";
+    modal.style.fontSize = "1.1em";
+    modal.style.lineHeight = "1.6";
+    modal.style.textAlign = "center";
+    modal.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
+    modal.style.zIndex = "1000";
+
+    modal.innerHTML = `
+      <h2 style="color:#002; margin-bottom:10px;">📖 信濃川の魚について</h2>
       <p>
         信濃川では、ブラックバスだけでなくアユ・サケ・ナマズも本来の生息魚ではなく、外来種とされています。<br>
-        外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。<br>
+        外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。
+      </p>
+      <p>
         ゲームでは「ブラックバス＝加点」「それ以外＝減点」としていますが、<br>
         実際の川ではどの魚が在来で、どの魚が外来なのかを正しく理解することがとても重要です。
       </p>
-      <p style="font-weight:bold; margin-top:10px; color:#222;">
+      <p style="margin-top:10px; font-weight:bold; font-size:1.2em; color:#333;">
         🎮 あなたのスコア: ${score}
       </p>
       <button id="fg-close" style="margin-top:15px; padding:8px 20px; font-size:1em;">閉じる</button>
     `;
 
-    overlay.appendChild(explanation);
-    document.body.appendChild(overlay);
+    document.body.appendChild(modal);
 
     document.getElementById("fg-close").onclick = () => {
-      // 解説モーダルを消す
-      document.body.removeChild(overlay);
-      // ゲーム本体を消す
+      modal.remove();
       document.body.removeChild(container);
-      // RPGに戻る
       showRPG();
-      // 結果を返す
       if (onFinish) onFinish(score);
     };
   }
