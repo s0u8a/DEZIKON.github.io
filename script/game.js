@@ -17,21 +17,21 @@ function setStatus(msg) {
 
 const images = {
   floor: new Image(),
-  wall:  new Image(),
+  wall: new Image(),
   enemy: new Image(),
-  item:  new Image(),
-  ally:  new Image(),
-  goal:  new Image(),
-  pl:    new Image(),
-  heart: new Image()
+  item: new Image(),
+  ally: new Image(),
+  goal: new Image(),
+  pl: new Image(),
+  heart: new Image(),
 };
 images.floor.src = "./assets/images/tanbo3.png";
-images.wall.src  = "./assets/images/mizu_big.png";
+images.wall.src = "./assets/images/mizu_big.png";
 images.enemy.src = "./assets/images/enemy.png";
-images.item.src  = "./assets/images/komebukuro.png";
-images.ally.src  = "./assets/images/murabitopng.png";
-images.goal.src  = "./assets/images/goal.png";
-images.pl.src    = "./assets/images/noumin.png";
+images.item.src = "./assets/images/komebukuro.png";
+images.ally.src = "./assets/images/murabitopng.png";
+images.goal.src = "./assets/images/goal.png";
+images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
 
 let currentMapIndex = 0;
@@ -81,8 +81,8 @@ function onTile(x, y) {
 }
 
 document.addEventListener("keydown", (e) => {
-  let nx = player.x, ny = player.y;
-
+  let nx = player.x,
+    ny = player.y;
   if (e.key === "ArrowUp") ny--;
   else if (e.key === "ArrowDown") ny++;
   else if (e.key === "ArrowLeft") nx--;
@@ -99,7 +99,8 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🥚 卵つぶしスコア: ${score}`);
         }
       });
-      map[player.y][player.x] = "0"; // 村人を消す
+      // 🛑 村人を消す
+      map[player.y][player.x] = "0";
       nearAlly = false;
     }, 1500);
     return;
@@ -118,13 +119,11 @@ document.addEventListener("keydown", (e) => {
     onTile(nx, ny);
   }
 
-  // 🎣 マップ2 → 敵接触で釣りゲーム
+  // 🎣 マップ2なら敵接触で釣りゲーム
   if (currentMapIndex === 1) {
-    updateEnemies(walkable, player, () => {
-      // まずダメージを与える
-      takeDamage(1, setStatus);
+    updateEnemies(walkable, player, (amt) => {
+      takeDamage(amt, setStatus); // 敵接触時に一旦ダメージ
 
-      // 釣りゲーム開始
       startFishingGame((score) => {
         if (score >= 10) {
           heal(1, setStatus);
@@ -136,7 +135,7 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🎣 釣果: ブラックバス ${score}匹`);
         }
 
-        // 🛑 敵を消す
+        // 🛑 敵を消す（村人と同じ方式）
         map[player.y][player.x] = "0";
       });
     });
