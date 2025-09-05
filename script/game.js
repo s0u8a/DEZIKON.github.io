@@ -2,11 +2,11 @@ import { maps, tile } from "./map.js";
 import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
-import { startEggGame } from "./eggGame.js"; // ★追加
+import { startEggGame } from "./eggGame.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-ctx.imageSmoothingEnabled = false; // タイル間の隙間防止
+ctx.imageSmoothingEnabled = false;
 
 const statusEl = document.getElementById("messageBox");
 function setStatus(msg) {
@@ -36,6 +36,9 @@ const images = {
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 
+// 村人との会話フラグ
+let nearAlly = false;
+
 // 初期化
 initPlayer(map);
 initEnemies(map);
@@ -47,7 +50,7 @@ function resizeCanvas() {
   canvas.height = map.length * tile * dpr;
   canvas.style.width = map[0].length * tile + "px";
   canvas.style.height = map.length * tile + "px";
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // スケールリセット
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
 }
 resizeCanvas();
@@ -58,7 +61,7 @@ function walkable(x, y) {
   return map[y][x] !== '#';
 }
 
-// マップ切り替え処理
+// マップ切り替え
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
@@ -72,16 +75,14 @@ function nextMap() {
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
 }
 
-// タイル接触処理 ★追加
+// タイル接触処理
 function onTile(x, y) {
   const cell = map[y][x];
   if (cell === 'A') {
-    setStatus("🤝 村人に会った！ 卵つぶしゲーム開始！");
-    startEggGame(score => {
-      if (score >= 10) heal(1, setStatus); // スコア10以上でHP回復
-      setStatus(`🥚 卵つぶしスコア: ${score}`);
-    });
-    map[y][x] = '0'; // 村人を消す
+    setStatus("🤝 村人がいる！Enterで話しかけてください");
+    nearAlly = true;
+  } else {
+    nearAlly = false;
   }
 }
 
@@ -92,20 +93,30 @@ document.addEventListener("keydown", e => {
   else if (e.key === "ArrowDown") ny++;
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
-  else return;
+  else if (e.key === "Enter" && nearAlly) {
+    // 村人に話しかけたとき
+    setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
+    setTimeout(() => {
+      startEggGame(score => {
+        if (score >= 10) heal(1, setStatus);
+        setStatus(`🥚 卵つぶしスコア: ${score}`);
+      });
+      map[player.y][player.x] = '0'; // 村人を消す
+      nearAlly = false;
+    }, 1500);
+    return;
+  } else return;
 
   if (walkable(nx, ny)) {
     player.x = nx;
     player.y = ny;
 
-    // ゴール判定
     if (checkGoal(map, player.x, player.y)) {
       setStatus("🏁 ゴール！");
       nextMap();
       return;
     }
 
-    // ★ 村人タイル判定
     onTile(nx, ny);
   }
 
