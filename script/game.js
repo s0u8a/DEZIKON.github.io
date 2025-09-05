@@ -20,18 +20,18 @@ const images = {
   wall:  new Image(),
   enemy: new Image(),
   item:  new Image(),
-  ally:  new Image(),
-  goal:  new Image(),
-  pl:    new Image(),
+  ally: new Image(),
+  goal: new Image(),
+  pl: new Image(),
   heart: new Image()
 };
 images.floor.src = "./assets/images/tanbo3.png";
-images.wall.src  = "./assets/images/mizu_big.png";
+images.wall.src = "./assets/images/mizu_big.png";
 images.enemy.src = "./assets/images/enemy.png";
-images.item.src  = "./assets/images/komebukuro.png";
-images.ally.src  = "./assets/images/murabitopng.png";
-images.goal.src  = "./assets/images/goal.png";
-images.pl.src    = "./assets/images/noumin.png";
+images.item.src = "./assets/images/komebukuro.png";
+images.ally.src = "./assets/images/murabitopng.png";
+images.goal.src = "./assets/images/goal.png";
+images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
 
 let currentMapIndex = 0;
@@ -54,7 +54,7 @@ resizeCanvas();
 
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
-  return map[y][x] !== '#';
+  return map[y][x] !== "#";
 }
 
 function nextMap() {
@@ -72,7 +72,7 @@ function nextMap() {
 
 function onTile(x, y) {
   const cell = map[y][x];
-  if (cell === 'A') {
+  if (cell === "A") {
     setStatus("🤝 村人がいる！Enterで話しかけてください");
     nearAlly = true;
   } else {
@@ -80,20 +80,26 @@ function onTile(x, y) {
   }
 }
 
-document.addEventListener("keydown", e => {
-  let nx = player.x, ny = player.y;
+document.addEventListener("keydown", (e) => {
+  let nx = player.x,
+    ny = player.y;
   if (e.key === "ArrowUp") ny--;
   else if (e.key === "ArrowDown") ny++;
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
+    // 🥚 村人イベント → 卵ゲーム
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
-      startEggGame(score => {
-        if (score >= 10) heal(1, setStatus);
-        setStatus(`🥚 卵つぶしスコア: ${score}`);
+      startEggGame((score) => {
+        if (score >= 10) {
+          heal(1, setStatus);
+          setStatus(`🥚 卵を大量につぶした！HP回復！`);
+        } else {
+          setStatus(`🥚 卵つぶしスコア: ${score}`);
+        }
       });
-      map[player.y][player.x] = '0';
+      map[player.y][player.x] = "0"; // 村人を消す
       nearAlly = false;
     }, 1500);
     return;
@@ -114,20 +120,26 @@ document.addEventListener("keydown", e => {
 
   // 🎣 マップ2なら敵接触で釣りゲーム
   if (currentMapIndex === 1) {
-    updateEnemies(walkable, player, amt => {
-      takeDamage(amt, setStatus);
-      startFishingGame(score => {
-        if (score >= 5) {
+    updateEnemies(walkable, player, (amt) => {
+      takeDamage(amt, setStatus); // 敵接触時に一旦ダメージ
+
+      startFishingGame((score) => {
+        if (score >= 10) {
           heal(1, setStatus);
-          setStatus(`✅ ブラックバスを ${score} 匹釣った！HP回復！`);
-        } else {
+          setStatus(`🐟 ブラックバスを ${score} 匹釣った！HP回復！`);
+        } else if (score <= 0) {
           takeDamage(1, setStatus);
-          setStatus(`❌ ブラックバスが少なすぎる… HPを失った`);
+          setStatus(`❌ ブラックバスが少なすぎる…外道ばかり！HP減少`);
+        } else {
+          setStatus(`🎣 釣果: ブラックバス ${score}匹`);
         }
+
+        // 🛑 敵を消す処理
+        map[player.y][player.x] = "0";
       });
     });
   } else {
-    updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
+    updateEnemies(walkable, player, (amt) => takeDamage(amt, setStatus));
   }
 
   if (checkGameOver(player, setStatus)) return;
@@ -142,10 +154,10 @@ function draw() {
       const dy = y * tile;
       ctx.drawImage(images.floor, dx, dy, tile, tile);
       const cell = map[y][x];
-      if (cell === '#') ctx.drawImage(images.wall, dx, dy, tile, tile);
-      if (cell === 'I') ctx.drawImage(images.item, dx, dy, tile, tile);
-      if (cell === 'A') ctx.drawImage(images.ally, dx, dy, tile, tile);
-      if (cell === 'G') ctx.drawImage(images.goal, dx, dy, tile, tile);
+      if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
+      if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
+      if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
+      if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
     }
   }
 
@@ -157,7 +169,7 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-window.startGame = function() {
+window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
   initPlayer(map);
