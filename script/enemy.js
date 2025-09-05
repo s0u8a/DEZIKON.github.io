@@ -1,5 +1,5 @@
 // script/enemy.js
-let enemies = [];
+export let enemies = [];   // ← 外からもアクセスできるよう export
 let enemyAnim = 0;
 
 export function initEnemies(GRID) {
@@ -13,14 +13,15 @@ export function initEnemies(GRID) {
         ];
         const dir = dirs[Math.floor(Math.random() * dirs.length)];
         enemies.push({ x, y, dx: dir.dx, dy: dir.dy });
-        GRID[y][x] = '0';
+        GRID[y][x] = '0'; // マップ上からは消して内部管理
       }
     }
   }
 }
 
-export function updateEnemies(walkable, player, takeDamage) {
-  for (let e of enemies) {
+export function updateEnemies(walkable, player, onHit) {
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
     const nx = e.x + e.dx;
     const ny = e.y + e.dy;
 
@@ -35,8 +36,9 @@ export function updateEnemies(walkable, player, takeDamage) {
       e.x = nx; e.y = ny;
     }
 
+    // 当たり判定
     if (e.x === player.x && e.y === player.y) {
-      takeDamage(1);
+      if (onHit) onHit(1, i); // ← index を渡す
     }
   }
 
@@ -54,5 +56,12 @@ export function drawEnemies(ctx, imgEnemy, TILE, offsetX, offsetY, canvasW, canv
     const size = TILE * pulse;
     const off = (TILE - size) / 2;
     ctx.drawImage(imgEnemy, dx + off, dy + off, size, size);
+  }
+}
+
+// 🛑 敵を削除する関数を追加
+export function removeEnemy(index) {
+  if (index >= 0 && index < enemies.length) {
+    enemies.splice(index, 1);
   }
 }
