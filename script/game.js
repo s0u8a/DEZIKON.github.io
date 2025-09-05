@@ -1,7 +1,8 @@
 import { maps, tile } from "./map.js";
-import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge } from "./player.js";
+import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
+import { startEggGame } from "./eggGame.js"; // ★追加
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -31,10 +32,9 @@ const images = {
   heart: loadImage("./assets/images/ha-to.png")
 };
 
-// マップ管理 ← ★ここ追加
-
-let currentMapIndex = 0;          // 現在のマップ番号
-let map = maps[currentMapIndex];  // 最初のマップをセット
+// マップ管理
+let currentMapIndex = 0;
+let map = maps[currentMapIndex];
 
 // 初期化
 initPlayer(map);
@@ -42,15 +42,15 @@ initEnemies(map);
 
 // Retina対応
 const dpr = window.devicePixelRatio || 1;
-function resizeCanvas() { // ← ★ここ追加（マップごとにサイズ更新）
-canvas.width = map[0].length * tile * dpr;
-canvas.height = map.length * tile * dpr;
-canvas.style.width = map[0].length * tile + "px";
-canvas.style.height = map.length * tile + "px";
-ctx.setTransform(1, 0, 0, 1, 0, 0); // スケールリセット ← ★ここ追加
-ctx.scale(dpr, dpr);
+function resizeCanvas() {
+  canvas.width = map[0].length * tile * dpr;
+  canvas.height = map.length * tile * dpr;
+  canvas.style.width = map[0].length * tile + "px";
+  canvas.style.height = map.length * tile + "px";
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // スケールリセット
+  ctx.scale(dpr, dpr);
 }
-resizeCanvas(); // 初回実行
+resizeCanvas();
 
 // 移動判定
 function walkable(x, y) {
@@ -58,20 +58,33 @@ function walkable(x, y) {
   return map[y][x] !== '#';
 }
 
-// マップ切り替え処理 ← ★ここ追加
+// マップ切り替え処理
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
     setStatus("🎉 全クリア！！");
     return;
   }
-  map = maps[currentMapIndex]; // 新しいマップに更新
+  map = maps[currentMapIndex];
   initPlayer(map);
   initEnemies(map);
-  resizeCanvas(); // キャンバスサイズを更新
+  resizeCanvas();
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
 }
-  
+
+// タイル接触処理 ★追加
+function onTile(x, y) {
+  const cell = map[y][x];
+  if (cell === 'A') {
+    setStatus("🤝 村人に会った！ 卵つぶしゲーム開始！");
+    startEggGame(score => {
+      if (score >= 10) heal(1, setStatus); // スコア10以上でHP回復
+      setStatus(`🥚 卵つぶしスコア: ${score}`);
+    });
+    map[y][x] = '0'; // 村人を消す
+  }
+}
+
 // キー操作
 document.addEventListener("keydown", e => {
   let nx = player.x, ny = player.y;
@@ -85,15 +98,19 @@ document.addEventListener("keydown", e => {
     player.x = nx;
     player.y = ny;
 
-     // ゴール判定 ← ★ここ変更
-    if (checkGoal(map, player.x, player.y)){ 
-　　　setStatus("🏁 ゴール！");
-  　　nextMap(); // ゴールで次マップへ ← ★ここ追加
+    // ゴール判定
+    if (checkGoal(map, player.x, player.y)) {
+      setStatus("🏁 ゴール！");
+      nextMap();
       return;
+    }
+
+    // ★ 村人タイル判定
+    onTile(nx, ny);
   }
-}
-    updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
-    if (checkGameOver(player, setStatus)) return;
+
+  updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
+  if (checkGameOver(player, setStatus)) return;
 });
 
 // 描画ループ
@@ -105,7 +122,6 @@ function draw() {
       const dx = x * tile;
       const dy = y * tile;
 
-      // タイルを整数座標で描画して余白をなくす
       ctx.drawImage(images.floor, Math.floor(dx), Math.floor(dy), tile, tile);
 
       const cell = map[y][x];
@@ -118,20 +134,15 @@ function draw() {
 
   drawEnemies(ctx, images.enemy, tile, 0, 0, map[0].length * tile, map.length * tile);
 
-  // プレイヤーを描画
   ctx.drawImage(images.pl, Math.floor(player.x * tile), Math.floor(player.y * tile), tile, tile);
 
-  // ハートをプレイヤーの頭上に描画
   drawLifeGauge(ctx, images.heart, tile, player);
 
-  updatePlayer(); // 無敵時間減少
-
+  updatePlayer();
   requestAnimationFrame(draw);
 }
 
-// ------------------------------
-// スタートボタンから呼ばれる関数 ← ★追加
-// ------------------------------
+// スタートボタンから呼ばれる関数
 window.startGame = function() {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
