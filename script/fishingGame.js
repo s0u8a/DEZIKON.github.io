@@ -17,10 +17,11 @@ export function startFishingGame(onFinish) {
   container.innerHTML = `
     <h1 style="font-size:2em; margin-bottom:10px; color:#004;">🎣 ブラックバス釣りゲーム</h1>
     <p style="margin:5px 0 15px; font-size:1.1em; color:#222;">
-      敵に遭遇した！ブラックバスをできるだけ多く釣ろう！
+      敵に遭遇した！ブラックバスを釣って点数を稼ごう。<br>
+      アユ・ナマズ・サケを釣ると減点になるぞ！
     </p>
     <div class="hud" style="margin-bottom:10px;">
-      <span class="pill">命中: <b id="fg-hit">0</b></span>
+      <span class="pill">スコア: <b id="fg-score">0</b></span>
       <span class="pill">残り: <b id="fg-time">30</b>s</span>
       <button id="fg-start">スタート</button>
     </div>
@@ -35,19 +36,34 @@ export function startFishingGame(onFinish) {
   let time = 30;
   let timer;
 
+  // 魚画像のリスト
+  const fishes = [
+    { src: "./assets/images/bas.png", good: true },   // ブラックバス
+    { src: "./assets/images/ayu.png", good: false },  // アユ
+    { src: "./assets/images/namazu.png", good: false }, // ナマズ
+    { src: "./assets/images/sake.png", good: false }   // サケ
+  ];
+
   function spawnFish() {
-    const fish = document.createElement("div");
-    fish.textContent = "🐟";
+    const fishData = fishes[Math.floor(Math.random() * fishes.length)];
+    const fish = document.createElement("img");
+    fish.src = fishData.src;
     fish.style.position = "absolute";
     fish.style.left = Math.random() * 700 + "px";
     fish.style.top = Math.random() * 360 + "px";
+    fish.style.width = "48px";
     fish.style.cursor = "pointer";
-    fish.style.fontSize = "28px";
+
     fish.onclick = () => {
-      score++;
-      document.getElementById("fg-hit").textContent = score;
+      if (fishData.good) {
+        score++;
+      } else {
+        score--;
+      }
+      document.getElementById("fg-score").textContent = score;
       fish.remove();
     };
+
     document.getElementById("fg-pond").appendChild(fish);
   }
 
@@ -62,7 +78,7 @@ export function startFishingGame(onFinish) {
   }
 
   function endGame() {
-    alert(`釣り終了！釣った数: ${score}`);
+    alert(`釣り終了！最終スコア: ${score}`);
     document.body.removeChild(container);
     showRPG();
     if (onFinish) onFinish(score);
