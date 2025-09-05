@@ -3,6 +3,7 @@ import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } fro
 import { initEnemies, updateEnemies, drawEnemies } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
+import { startFishingGame } from "./fishingGame.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -14,36 +15,32 @@ function setStatus(msg) {
   console.log(msg);
 }
 
-// 画像読み込み
-function loadImage(src) {
-  const img = new Image();
-  img.src = src;
-  return img;
-}
-
 const images = {
-  floor: loadImage("./assets/images/tanbo3.png"),
-  wall:  loadImage("./assets/images/mizu_big.png"),
-  enemy: loadImage("./assets/images/enemy.png"),
-  item:  loadImage("./assets/images/komebukuro.png"),
-  ally:  loadImage("./assets/images/murabitopng.png"),
-  goal:  loadImage("./assets/images/goal.png"),
-  pl:    loadImage("./assets/images/noumin.png"),
-  heart: loadImage("./assets/images/ha-to.png")
+  floor: new Image(),
+  wall:  new Image(),
+  enemy: new Image(),
+  item:  new Image(),
+  ally:  new Image(),
+  goal:  new Image(),
+  pl:    new Image(),
+  heart: new Image()
 };
+images.floor.src = "./assets/images/tanbo3.png";
+images.wall.src  = "./assets/images/mizu_big.png";
+images.enemy.src = "./assets/images/enemy.png";
+images.item.src  = "./assets/images/komebukuro.png";
+images.ally.src  = "./assets/images/murabitopng.png";
+images.goal.src  = "./assets/images/goal.png";
+images.pl.src    = "./assets/images/noumin.png";
+images.heart.src = "./assets/images/ha-to.png";
 
-// マップ管理
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
-
-// 村人との会話フラグ
 let nearAlly = false;
 
-// 初期化
 initPlayer(map);
 initEnemies(map);
 
-// Retina対応
 const dpr = window.devicePixelRatio || 1;
 function resizeCanvas() {
   canvas.width = map[0].length * tile * dpr;
@@ -55,13 +52,11 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// 移動判定
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   return map[y][x] !== '#';
 }
 
-// マップ切り替え
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
@@ -75,7 +70,6 @@ function nextMap() {
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
 }
 
-// タイル接触処理
 function onTile(x, y) {
   const cell = map[y][x];
   if (cell === 'A') {
@@ -86,7 +80,6 @@ function onTile(x, y) {
   }
 }
 
-// キー操作
 document.addEventListener("keydown", e => {
   let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
@@ -94,14 +87,13 @@ document.addEventListener("keydown", e => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
-    // 村人に話しかけたとき
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame(score => {
         if (score >= 10) heal(1, setStatus);
         setStatus(`🥚 卵つぶしスコア: ${score}`);
       });
-      map[player.y][player.x] = '0'; // 村人を消す
+      map[player.y][player.x] = '0';
       nearAlly = false;
     }, 1500);
     return;
@@ -120,11 +112,27 @@ document.addEventListener("keydown", e => {
     onTile(nx, ny);
   }
 
-  updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
+  // 🎣 マップ2なら敵接触で釣りゲーム
+  if (currentMapIndex === 1) {
+    updateEnemies(walkable, player, amt => {
+      takeDamage(amt, setStatus);
+      startFishingGame(score => {
+        if (score >= 5) {
+          heal(1, setStatus);
+          setStatus(`✅ ブラックバスを ${score} 匹釣った！HP回復！`);
+        } else {
+          takeDamage(1, setStatus);
+          setStatus(`❌ ブラックバスが少なすぎる… HPを失った`);
+        }
+      });
+    });
+  } else {
+    updateEnemies(walkable, player, amt => takeDamage(amt, setStatus));
+  }
+
   if (checkGameOver(player, setStatus)) return;
 });
 
-// 描画ループ
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -132,28 +140,23 @@ function draw() {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile;
       const dy = y * tile;
-
-      ctx.drawImage(images.floor, Math.floor(dx), Math.floor(dy), tile, tile);
-
+      ctx.drawImage(images.floor, dx, dy, tile, tile);
       const cell = map[y][x];
-      if (cell === '#') ctx.drawImage(images.wall, Math.floor(dx), Math.floor(dy), tile, tile);
-      if (cell === 'I') ctx.drawImage(images.item, Math.floor(dx), Math.floor(dy), tile, tile);
-      if (cell === 'A') ctx.drawImage(images.ally, Math.floor(dx), Math.floor(dy), tile, tile);
-      if (cell === 'G') ctx.drawImage(images.goal, Math.floor(dx), Math.floor(dy), tile, tile);
+      if (cell === '#') ctx.drawImage(images.wall, dx, dy, tile, tile);
+      if (cell === 'I') ctx.drawImage(images.item, dx, dy, tile, tile);
+      if (cell === 'A') ctx.drawImage(images.ally, dx, dy, tile, tile);
+      if (cell === 'G') ctx.drawImage(images.goal, dx, dy, tile, tile);
     }
   }
 
   drawEnemies(ctx, images.enemy, tile, 0, 0, map[0].length * tile, map.length * tile);
-
-  ctx.drawImage(images.pl, Math.floor(player.x * tile), Math.floor(player.y * tile), tile, tile);
-
+  ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
 
   updatePlayer();
   requestAnimationFrame(draw);
 }
 
-// スタートボタンから呼ばれる関数
 window.startGame = function() {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
