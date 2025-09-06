@@ -4,7 +4,7 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startFishingGame(onFinish) {
   hideRPG();
 
-  // 🎯 既存のコンテナが残っていたら削除（二重防止）
+  // 既存のコンテナが残っていたら削除（←二重防止）
   const old = document.getElementById("fishingGame");
   if (old) old.remove();
 
@@ -47,7 +47,7 @@ export function startFishingGame(onFinish) {
     { src: "./assets/images/sake.png", type: "other" }
   ];
 
-  // 🎣 魚生成（左から右へ流れるアニメーション付き）
+  // 🎣 魚を流れるように動かす
   function spawnFish() {
     const fish = document.createElement("img");
     const fishData = fishImages[Math.floor(Math.random() * fishImages.length)];
@@ -55,12 +55,12 @@ export function startFishingGame(onFinish) {
     fish.dataset.type = fishData.type;
 
     fish.style.position = "absolute";
-    fish.style.left = "-60px"; // 左の外から出現
-    fish.style.top = Math.random() * 340 + "px";
-    fish.style.cursor = "pointer";
+    fish.style.top = Math.random() * 360 + "px";
+    fish.style.left = "-60px"; // 左端から登場
     fish.style.width = "48px";
     fish.style.height = "auto";
-    fish.style.transition = "transform 5s linear"; // アニメーション
+    fish.style.cursor = "pointer";
+    fish.style.transition = "transform 0.1s"; // クリック感
 
     fish.onclick = () => {
       if (fish.dataset.type === "bass") {
@@ -74,15 +74,16 @@ export function startFishingGame(onFinish) {
 
     document.getElementById("fg-pond").appendChild(fish);
 
-    // ちょっと待ってから右へ流れるアニメーションを開始
-    setTimeout(() => {
-      fish.style.transform = `translateX(${760}px)`;
-    }, 50);
-
-    // 画面外に出たら削除
-    setTimeout(() => {
-      if (fish.parentNode) fish.remove();
-    }, 5000);
+    // アニメーションで右に流す
+    let pos = -60;
+    const move = setInterval(() => {
+      pos += 2;
+      fish.style.left = pos + "px";
+      if (pos > 760) {
+        clearInterval(move);
+        fish.remove();
+      }
+    }, 30);
   }
 
   function tick() {
@@ -96,6 +97,7 @@ export function startFishingGame(onFinish) {
   }
 
   function endGame() {
+    // 既存の解説モーダルを消してから作成（←二重防止）
     const oldModal = document.getElementById("fg-modal");
     if (oldModal) oldModal.remove();
 
@@ -106,43 +108,34 @@ export function startFishingGame(onFinish) {
     modal.style.left = "50%";
     modal.style.transform = "translate(-50%, -50%)";
     modal.style.background = "#fff";
-    modal.style.padding = "30px 40px";
-    modal.style.borderRadius = "12px";
+    modal.style.padding = "20px";
+    modal.style.borderRadius = "10px";
     modal.style.width = "600px";
-    modal.style.color = "#222";
-    modal.style.fontSize = "1.05em";
+    modal.style.color = "#111";
+    modal.style.fontSize = "1.1em";
     modal.style.lineHeight = "1.8";
     modal.style.textAlign = "center";
     modal.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
     modal.style.zIndex = "1000";
 
     modal.innerHTML = `
-      <h2 style="color:#002; margin-bottom:20px; font-size:1.6em;">📖 信濃川の魚について</h2>
-      <p style="margin-bottom:15px;">
+      <h2 style="color:#002; margin-bottom:15px;">📖 信濃川の魚について</h2>
+      <p style="text-align:justify; text-align-last:center; margin-bottom:15px;">
         信濃川では、ブラックバスだけでなくアユ・サケ・ナマズも本来の生息魚ではなく、外来種とされています。<br>
         外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。
       </p>
-      <p style="margin-bottom:20px;">
+      <p style="text-align:justify; text-align-last:center; margin-bottom:20px;">
         ゲームでは「ブラックバス＝加点」「それ以外＝減点」としていますが、<br>
         実際の川ではどの魚が在来で、どの魚が外来なのかを正しく理解することがとても重要です。
       </p>
-      <p style="margin-top:10px; font-weight:bold; font-size:1.2em; color:#333;">
+      <p style="margin-top:15px; font-weight:bold; font-size:1.3em; color:#333;">
         🎮 あなたのスコア: ${score}
       </p>
-      <button id="fg-close" style="margin-top:20px; padding:8px 20px; font-size:1em;">閉じる</button>
+      <button id="fg-close" style="margin-top:20px; padding:10px 24px; font-size:1em; border-radius:6px;">閉じる</button>
     `;
 
     document.body.appendChild(modal);
 
     document.getElementById("fg-close").onclick = () => {
       modal.remove();
-      document.body.removeChild(container);
-      showRPG();
-      if (onFinish) onFinish(score);
-    };
-  }
-
-  document.getElementById("fg-start").onclick = () => {
-    timer = setInterval(tick, 1000);
-  };
-}
+      document.body.removeChi
