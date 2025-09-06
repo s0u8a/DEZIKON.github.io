@@ -9,7 +9,7 @@ export function initEnemies(GRID) {
     for (let x = 0; x < GRID[y].length; x++) {
       if (GRID[y][x] === "E") {
         enemies.push({ x, y, dx: 1, dy: 0, type: "E" }); // 通常の敵
-        GRID[y][x] = "0"; // マップからは消す
+        GRID[y][x] = "0"; // マップから消す
       } else if (GRID[y][x] === "F") {
         enemies.push({ x, y, dx: 1, dy: 0, type: "F" }); // カエル
         GRID[y][x] = "0";
