@@ -14,7 +14,7 @@ export function startEggGame(onFinish) {
     : '';
   
   const imagePaths = {
-    background: `${basePath}/assets/images/tanshigame.png`,
+    background: `${basePath}/assets/images/tanshi5.png`,
     egg: `${basePath}/assets/images/tamago.png`,
     crushed: `${basePath}/assets/images/gucha.png`
   };
