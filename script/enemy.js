@@ -8,9 +8,11 @@ export function initEnemies(GRID) {
   for (let y = 0; y < GRID.length; y++) {
     for (let x = 0; x < GRID[0].length; x++) {
       if (GRID[y][x] === "E") {
+        // 通常の敵
         enemies.push({ x, y, dx: 1, dy: 0, type: "normal" });
         GRID[y][x] = "0";
       } else if (GRID[y][x] === "F") {
+        // 🐸 カエル
         enemies.push({ x, y, dx: 1, dy: 0, type: "frog" });
         GRID[y][x] = "0";
       }
@@ -18,7 +20,7 @@ export function initEnemies(GRID) {
   }
 }
 
-// 敵の移動
+// 敵の移動と接触判定
 export function updateEnemies(walkable, player, onHit) {
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
@@ -29,6 +31,7 @@ export function updateEnemies(walkable, player, onHit) {
       e.x = nx;
       e.y = ny;
     } else {
+      // ランダムに方向転換
       const dirs = [
         { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
         { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
@@ -38,14 +41,16 @@ export function updateEnemies(walkable, player, onHit) {
       e.dy = dir.dy;
     }
 
+    // プレイヤーに当たった
     if (e.x === player.x && e.y === player.y) {
       if (onHit) onHit(1, i, e.type);
     }
   }
+
   if (player.invincibleTime > 0) player.invincibleTime--;
 }
 
-// 敵の描画（通常敵とカエルを区別）
+// 敵を描画（通常敵とカエル両方対応）
 export function drawEnemies(ctx, imgEnemy, imgFrog, TILE, offsetX, offsetY, canvasW, canvasH) {
   enemyAnim++;
   for (let e of enemies) {
@@ -65,7 +70,7 @@ export function drawEnemies(ctx, imgEnemy, imgFrog, TILE, offsetX, offsetY, canv
   }
 }
 
-// 敵削除
+// 敵を削除
 export function removeEnemy(index) {
   if (index >= 0 && index < enemies.length) {
     enemies.splice(index, 1);
