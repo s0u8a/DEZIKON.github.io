@@ -4,7 +4,7 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startEggGame(onFinish) {
   hideRPG();
 
-  // 既に古い eggGame があったら消す（←二重防止）
+  // 既に古い eggGame があったら消す
   const old = document.getElementById("eggGame");
   if (old) old.remove();
 
@@ -32,18 +32,11 @@ export function startEggGame(onFinish) {
       <span>残り: <b id="egg-time">15</b>s</span>
       <button id="egg-start">スタート</button>
     </div>
-<div id="egg-field"
-     style="
-       width:100%;
-       height:400px;
-       position:relative;
-       overflow:hidden;
-       border:2px solid #900;
-     ">
-  <img src="./assets/images/tanshigame.png"
-       style="width:100%; height:100%; object-fit:fill; position:absolute; top:0; left:0; z-index:0;">
-</div>
-
+    <div id="egg-field"
+         style="width:760px;height:400px;
+                background:url('./assets/images/tanshigame.png') center/cover no-repeat;
+                position:relative;overflow:hidden;border:2px solid #900;">
+    </div>
   `;
 
   document.body.appendChild(container);
@@ -55,8 +48,8 @@ export function startEggGame(onFinish) {
 
   function spawnEgg() {
     const egg = document.createElement("img");
-    egg.src = "./assets/images/tamago.png"; // 卵画像
-    egg.dataset.egg = "true"; // ← 卵であることを識別
+    egg.src = "./assets/images/tamago.png"; // 通常卵
+    egg.dataset.egg = "true";
     egg.style.position = "absolute";
     egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
     egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
@@ -67,7 +60,7 @@ export function startEggGame(onFinish) {
     egg.onclick = () => {
       score++;
       document.getElementById("egg-score").textContent = score;
-      egg.src = "./assets/images/gucha.png"; // つぶれた画像に差し替え
+      egg.src = "./assets/images/gucha.png"; // つぶれた画像
       setTimeout(() => egg.remove(), 300);
     };
 
@@ -103,7 +96,7 @@ export function startEggGame(onFinish) {
     document.getElementById("egg-score").textContent = score;
     document.getElementById("egg-time").textContent = time;
 
-    // 🎯 卵だけ削除（スタートボタンは残る）
+    // 卵だけ削除（背景はCSSで残る）
     const eggs = field.querySelectorAll("img[data-egg='true']");
     eggs.forEach(e => e.remove());
 
