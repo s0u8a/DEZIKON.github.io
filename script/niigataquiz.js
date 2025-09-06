@@ -1,13 +1,12 @@
 import { invasiveSpeciesQuiz } from "./quizdata.js";
 
-// ランダムで1問取得
 function getRandomQuiz() {
   const randomIndex = Math.floor(Math.random() * invasiveSpeciesQuiz.length);
   return invasiveSpeciesQuiz[randomIndex];
 }
 
-// クイズ画面を表示
 export function startNiigataQuiz(onFinish) {
+  console.log("✅ startNiigataQuiz 呼ばれた！");
   const quiz = getRandomQuiz();
 
   // ゲーム画面を隠してクイズ画面を表示
@@ -19,7 +18,7 @@ export function startNiigataQuiz(onFinish) {
   // 問題文を表示
   document.getElementById("quizQuestion").textContent = quiz.question;
 
-  // 選択肢をボタンとして表示
+  // 選択肢を表示
   const choicesDiv = document.getElementById("quizChoices");
   choicesDiv.innerHTML = "";
   quiz.choices.forEach((choice, idx) => {
