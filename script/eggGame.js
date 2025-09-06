@@ -4,7 +4,7 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startEggGame(onFinish) {
   hideRPG();
 
-  // 既に古い eggGame があったら消す（←追加！）
+  // 既に古い eggGame があったら消す
   const old = document.getElementById("eggGame");
   if (old) old.remove();
 
@@ -27,13 +27,19 @@ export function startEggGame(onFinish) {
       ジャンボタニシの卵をつぶして田んぼを守れ！<br>
       制限時間内にできるだけ多くクリックしてつぶそう！
     </p>
-    <div class="hud" style="margin-bottom:10px;">
+    <div class="hud" style="margin-bottom:10px; font-size:1.2em; color:#c06;">
       <span>つぶした数: <b id="egg-score">0</b></span>
-      <span>残り: <b id="egg-time">15</b>s</span>
-      <button id="egg-start">スタート</button>
+      <span style="margin-left:15px;">残り: <b id="egg-time">15</b>s</span>
+      <button id="egg-start" style="margin-left:15px;">スタート</button>
     </div>
     <div id="egg-field"
-         style="width:100%;height:400px;background:#fdd;position:relative;overflow:hidden;border:2px solid #900;">
+         style="
+           width:100%;
+           height:400px;
+           background:url('./assets/images/tanshigame.png') center/cover no-repeat;
+           position:relative;
+           overflow:hidden;
+           border:2px solid #900;">
     </div>
   `;
 
@@ -46,7 +52,7 @@ export function startEggGame(onFinish) {
 
   function spawnEgg() {
     const egg = document.createElement("img");
-    egg.src = "./assets/images/tamago.png"; // ← 通常の卵
+    egg.src = "./assets/images/tamago.png"; // 通常の卵
     egg.style.position = "absolute";
     egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
     egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
@@ -57,7 +63,7 @@ export function startEggGame(onFinish) {
     egg.onclick = () => {
       score++;
       document.getElementById("egg-score").textContent = score;
-      egg.src = "./assets/images/gucha.png"; // ← つぶれた画像に変更
+      egg.src = "./assets/images/gucha.png"; // つぶれた画像に変更
       setTimeout(() => egg.remove(), 300);
     };
 
@@ -79,14 +85,14 @@ export function startEggGame(onFinish) {
 
     alert(`終了！つぶした数: ${score}`);
 
-    // 🎯 eggGame を必ず削除
+    // eggGame を必ず削除
     const old = document.getElementById("eggGame");
     if (old) old.remove();
 
-    // 🎯 RPG画面を復帰
+    // RPG画面を復帰
     showRPG();
 
-    // 🎯 コールバック呼び出し
+    // コールバック呼び出し
     if (onFinish) onFinish(score);
   }
 
