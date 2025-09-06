@@ -136,7 +136,6 @@ document.addEventListener("keydown", (e) => {
           } else {
             setStatus(`🎣 釣果: ブラックバス ${score}匹`);
           }
-          map[player.y][player.x] = "0";
           removeEnemy(enemyIndex);
         });
       } else if (type === "F") {
@@ -150,7 +149,6 @@ document.addEventListener("keydown", (e) => {
             takeDamage(1, setStatus);
             setStatus(`❌ クイズ不正解…HP減少`);
           }
-          map[player.y][player.x] = "0";
           removeEnemy(enemyIndex);
         });
       }
@@ -168,6 +166,7 @@ document.addEventListener("keydown", (e) => {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // 背景とアイテム類だけを描画（敵はここでは描かない）
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile;
@@ -178,13 +177,24 @@ function draw() {
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
-      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);  // 通常敵
-      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸 カエル敵
     }
   }
 
-  drawEnemies(ctx, images.enemy, tile, 0, 0, map[0].length * tile, map.length * tile);
+  // 敵の描画（enemy.jsに任せる）
+  drawEnemies(
+    ctx,
+    images.enemy,   // E 敵
+    images.enemy2,  // F カエル
+    tile,
+    0, 0,
+    map[0].length * tile,
+    map.length * tile
+  );
+
+  // プレイヤー
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
+
+  // HPゲージ
   drawLifeGauge(ctx, images.heart, tile, player);
 
   updatePlayer();
