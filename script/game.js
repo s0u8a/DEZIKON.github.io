@@ -4,7 +4,7 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズを追加
+import { startNiigataQuiz } from "./niigataquiz.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -20,7 +20,7 @@ const images = {
   floor: new Image(),
   wall: new Image(),
   enemy: new Image(),
-  enemy2: new Image(), // 🆕 カエル用
+  enemy2: new Image(), // カエル用
   item: new Image(),
   ally: new Image(),
   goal: new Image(),
@@ -30,7 +30,7 @@ const images = {
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
 images.enemy.src = "./assets/images/enemy.png";
-images.enemy2.src = "./assets/images/kaeru.png"; // 🆕 カエル画像
+images.enemy2.src = "./assets/images/kaeru.png";
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
@@ -90,7 +90,6 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
-    // 🥚 村人イベント → 卵ゲーム
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
@@ -101,7 +100,7 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🥚 卵つぶしスコア: ${score}`);
         }
       });
-      map[player.y][player.x] = "0"; // 村人を消す
+      map[player.y][player.x] = "0";
       nearAlly = false;
     }, 1500);
     return;
@@ -120,11 +119,9 @@ document.addEventListener("keydown", (e) => {
     onTile(nx, ny);
   }
 
-  // 🎣 マップ2なら敵接触イベント
   if (currentMapIndex === 1) {
     updateEnemies(walkable, player, (amt, enemyIndex, type) => {
       if (type === "E") {
-        // 通常の敵 → 釣りゲーム
         takeDamage(amt, setStatus);
         startFishingGame((score) => {
           if (score >= 10) {
@@ -139,7 +136,6 @@ document.addEventListener("keydown", (e) => {
           removeEnemy(enemyIndex);
         });
       } else if (type === "F") {
-        // 🐸 カエル → 新潟クイズ
         setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
         startNiigataQuiz((correct) => {
           if (correct) {
@@ -156,7 +152,7 @@ document.addEventListener("keydown", (e) => {
   } else {
     updateEnemies(walkable, player, (amt, enemyIndex) => {
       takeDamage(amt, setStatus);
-      removeEnemy(enemyIndex); // 通常マップでも接触した敵は消える
+      removeEnemy(enemyIndex);
     });
   }
 
@@ -166,7 +162,7 @@ document.addEventListener("keydown", (e) => {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 背景とアイテム類だけを描画（敵はここでは描かない）
+  // 背景とアイテム・壁・村人・ゴールだけを描画（敵はここで描かない）
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile;
@@ -180,11 +176,11 @@ function draw() {
     }
   }
 
-  // 敵の描画（enemy.jsに任せる）
+  // 敵を描画
   drawEnemies(
     ctx,
-    images.enemy,   // E 敵
-    images.enemy2,  // F カエル
+    images.enemy,   // E
+    images.enemy2,  // F
     tile,
     0, 0,
     map[0].length * tile,
