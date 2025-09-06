@@ -33,15 +33,11 @@ export function startEggGame(onFinish) {
       <button id="egg-start" style="margin-left:15px;">スタート</button>
     </div>
 <div id="egg-field"
-     style="
-       width:100%;
-       height:400px;
-       background:url('./assets/images/tanshigame.png') center/cover no-repeat;
-       position:relative;
-       overflow:hidden;
-       border:2px solid #900;
-     ">
+     style="width:100%;height:400px;
+            background:url('./assets/images/tanshigame.png') center/cover no-repeat;
+            position:relative;overflow:hidden;border:2px solid #900;">
 </div>
+
 
   `;
 
