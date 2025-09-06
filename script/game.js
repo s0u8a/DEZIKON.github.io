@@ -23,7 +23,7 @@ const images = {
   ally: new Image(),
   goal: new Image(),
   pl: new Image(),
-  heart: new Image(),
+  heart: new Image()
 };
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
@@ -99,8 +99,7 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🥚 卵つぶしスコア: ${score}`);
         }
       });
-      // 🛑 村人を消す
-      map[player.y][player.x] = "0";
+      map[player.y][player.x] = "0"; // 🛑 村人を消す
       nearAlly = false;
     }, 1500);
     return;
@@ -135,7 +134,7 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🎣 釣果: ブラックバス ${score}匹`);
         }
 
-        // 🛑 敵を消す（村人と同じ方式）
+        // 🛑 敵をマップから消す（村人と同じ方式）
         map[player.y][player.x] = "0";
       });
     });
