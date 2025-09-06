@@ -47,6 +47,7 @@ export function startFishingGame(onFinish) {
     { src: "./assets/images/sake.png", type: "other" }
   ];
 
+  // 🎣 流れて泳ぐ魚
   function spawnFish() {
     const fish = document.createElement("img");
     const fishData = fishImages[Math.floor(Math.random() * fishImages.length)];
@@ -54,11 +55,15 @@ export function startFishingGame(onFinish) {
     fish.dataset.type = fishData.type;
 
     fish.style.position = "absolute";
-    fish.style.left = Math.random() * 700 + "px";
     fish.style.top = Math.random() * 360 + "px";
-    fish.style.cursor = "pointer";
     fish.style.width = "48px";
     fish.style.height = "auto";
+    fish.style.cursor = "pointer";
+
+    // 左→右 or 右→左
+    const direction = Math.random() < 0.5 ? "right" : "left";
+    let pos = direction === "right" ? -60 : 760;
+    fish.style.left = pos + "px";
 
     fish.onclick = () => {
       if (fish.dataset.type === "bass") {
@@ -71,6 +76,28 @@ export function startFishingGame(onFinish) {
     };
 
     document.getElementById("fg-pond").appendChild(fish);
+
+    // 移動アニメーション
+    const speed = 2 + Math.random() * 2;
+    function move() {
+      if (!fish.parentElement) return;
+      if (direction === "right") {
+        pos += speed;
+        if (pos > 760) {
+          fish.remove();
+          return;
+        }
+      } else {
+        pos -= speed;
+        if (pos < -60) {
+          fish.remove();
+          return;
+        }
+      }
+      fish.style.left = pos + "px";
+      requestAnimationFrame(move);
+    }
+    requestAnimationFrame(move);
   }
 
   function tick() {
@@ -132,6 +159,10 @@ export function startFishingGame(onFinish) {
   }
 
   document.getElementById("fg-start").onclick = () => {
+    score = 0;
+    time = 30;
+    document.getElementById("fg-hit").textContent = score;
+    document.getElementById("fg-time").textContent = time;
     timer = setInterval(tick, 1000);
   };
 }
