@@ -30,7 +30,7 @@ const images = {
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
 images.enemy.src = "./assets/images/enemy.png";
-images.enemy2.src = "./assets/images/kaeru.png"; // 🐸 カエル画像
+images.enemy2.src = "./assets/images/kaeru.png";
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
@@ -41,7 +41,7 @@ let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
 
-// ✅ 追加: 一時停止用
+// ✅ 一時停止用
 let isPaused = false;
 let gameLoopId = null;
 
@@ -59,99 +59,15 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-function walkable(x, y) {
-  if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
-  return map[y][x] !== "#";
-}
-
-function nextMap() {
-  currentMapIndex++;
-  if (currentMapIndex >= maps.length) {
-    setStatus("🎉 全クリア！！");
-    return;
-  }
-  map = maps[currentMapIndex];
-  initPlayer(map);
-  initEnemies(map);
-  resizeCanvas();
-  setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
-}
-
-function onTile(x, y) {
-  const cell = map[y][x];
-  if (cell === "A") {
-    setStatus("🤝 村人がいる！Enterで話しかけてください");
-    nearAlly = true;
-  } else {
-    nearAlly = false;
-  }
-}
-
 document.addEventListener("keydown", (e) => {
-  if (isPaused) return; // ✅ 一時停止中は操作できない
-
-  let nx = player.x, ny = player.y;
-  if (e.key === "ArrowUp") ny--;
-  else if (e.key === "ArrowDown") ny++;
-  else if (e.key === "ArrowLeft") nx--;
-  else if (e.key === "ArrowRight") nx++;
-  else if (e.key === "Enter" && nearAlly) {
-    setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
-    setTimeout(() => {
-      startEggGame((score) => {
-        if (score >= 10) {
-          heal(1, setStatus);
-          setStatus(`🥚 卵を大量につぶした！HP回復！`);
-        } else {
-          setStatus(`🥚 卵つぶしスコア: ${score}`);
-        }
-      });
-      map[player.y][player.x] = "0";
-      nearAlly = false;
-    }, 1500);
-    return;
-  } else return;
-
-  if (walkable(nx, ny)) {
-    player.x = nx;
-    player.y = ny;
-
-    if (checkGoal(map, player.x, player.y)) {
-      setStatus("🏁 ゴール！");
-      nextMap();
-      return;
-    }
-
-    onTile(nx, ny);
-  }
-
+  if (isPaused) return; // 一時停止中は操作不可
+  ...
   // 敵の処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
-    if (type === "normal") {
-      if (currentMapIndex === 1) {
-        takeDamage(amt, setStatus);
-        startFishingGame((score) => {
-          if (score >= 10) {
-            heal(1, setStatus);
-            setStatus(`🐟 ブラックバスを ${score} 匹釣った！HP回復！`);
-          } else if (score <= 0) {
-            takeDamage(1, setStatus);
-            setStatus(`❌ ブラックバスが少なすぎる…外道ばかり！HP減少`);
-          } else {
-            setStatus(`🎣 釣果: ブラックバス ${score}匹`);
-          }
-          map[player.y][player.x] = "0";
-          removeEnemy(enemyIndex);
-        });
-      } else {
-        takeDamage(amt, setStatus);
-        removeEnemy(enemyIndex);
-      }
-    } else if (type === "frog") {
-      // 🐸 カエル → クイズ画面へ
+    if (type === "frog") {
       setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
 
-      // ✅ ゲーム一時停止
+      // 一時停止
       isPaused = true;
       cancelAnimationFrame(gameLoopId);
 
@@ -167,41 +83,18 @@ document.addEventListener("keydown", (e) => {
         map[player.y][player.x] = "0";
         removeEnemy(enemyIndex);
 
-        // ✅ ゲーム再開
+        // 再開
         isPaused = false;
         draw();
       });
     }
   });
-
-  if (checkGameOver(player, setStatus)) return;
 });
 
 function draw() {
   if (isPaused) return;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  for (let y = 0; y < map.length; y++) {
-    for (let x = 0; x < map[0].length; x++) {
-      const dx = x * tile;
-      const dy = y * tile;
-      ctx.drawImage(images.floor, dx, dy, tile, tile);
-      const cell = map[y][x];
-      if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
-      if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
-      if (cell === "A") ctx.drawImage(images.ally, dx,dy, tile, tile);
-      if (cell === "G") ctx.drawImage(images.goal, dx,dy, tile, tile);
-      if (cell === "E") ctx.drawImage(images.enemy, dx,dy, tile, tile);
-      if (cell === "F") ctx.drawImage(images.enemy2, dx,dy, tile, tile);
-    }
-  }
-
-  drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
-  ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
-  drawLifeGauge(ctx, images.heart, tile, player);
-
-  updatePlayer();
+  ...
   gameLoopId = requestAnimationFrame(draw);
 }
 
