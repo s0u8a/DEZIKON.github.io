@@ -121,10 +121,11 @@ export function startFishingGame(onFinish) {
       <p style="margin-bottom:12px;">
         信濃川では、ブラックバスだけでなくアユ・サケ・ナマズも本来の生息魚ではなく、外来種とされています。<br>
         外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。
-      </p>
-      <p style="margin-bottom:12px;">
         ゲームでは「ブラックバス＝加点」「それ以外＝減点」としていますが、<br>
         実際の川ではどの魚が在来で、どの魚が外来なのかを正しく理解することがとても重要です。
+      </p>
+    
+      
       </p>
       <p style="margin-top:15px; font-weight:bold; font-size:1.3em; color:#333;">
         🎮 あなたのスコア: ${score}
