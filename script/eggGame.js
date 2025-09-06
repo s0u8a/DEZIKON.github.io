@@ -4,6 +4,10 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startEggGame(onFinish) {
   hideRPG();
 
+  // 既に古い eggGame があったら消す（←追加！）
+  const old = document.getElementById("eggGame");
+  if (old) old.remove();
+
   // コンテナ作成
   const container = document.createElement("div");
   container.id = "eggGame";
@@ -42,7 +46,7 @@ export function startEggGame(onFinish) {
 
   function spawnEgg() {
     const egg = document.createElement("img");
-    egg.src = "./assets/images/tanishi.png";
+    egg.src = "./assets/images/tamago.png"; // ← 通常の卵
     egg.style.position = "absolute";
     egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
     egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
@@ -53,7 +57,7 @@ export function startEggGame(onFinish) {
     egg.onclick = () => {
       score++;
       document.getElementById("egg-score").textContent = score;
-      egg.src = "./assets/images/gucha.png";
+      egg.src = "./assets/images/gucha.png"; // ← つぶれた画像に変更
       setTimeout(() => egg.remove(), 300);
     };
 
@@ -71,13 +75,13 @@ export function startEggGame(onFinish) {
   }
 
   function endGame() {
-    // 🎯 ゲーム終了処理
+    clearInterval(timer);
+
     alert(`終了！つぶした数: ${score}`);
 
-    // 🎯 コンテナを確実に削除
-    if (document.body.contains(container)) {
-      document.body.removeChild(container);
-    }
+    // 🎯 eggGame を必ず削除
+    const old = document.getElementById("eggGame");
+    if (old) old.remove();
 
     // 🎯 RPG画面を復帰
     showRPG();
