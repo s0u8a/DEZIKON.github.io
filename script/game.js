@@ -1,6 +1,6 @@
 import { maps, tile } from "./map.js";
 import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } from "./player.js";
-import { initEnemies, updateEnemies, drawEnemies } from "./enemy.js";
+import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
@@ -81,8 +81,7 @@ function onTile(x, y) {
 }
 
 document.addEventListener("keydown", (e) => {
-  let nx = player.x,
-    ny = player.y;
+  let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
   else if (e.key === "ArrowDown") ny++;
   else if (e.key === "ArrowLeft") nx--;
@@ -99,7 +98,7 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🥚 卵つぶしスコア: ${score}`);
         }
       });
-      map[player.y][player.x] = "0"; // 🛑 村人を消す
+      map[player.y][player.x] = "0"; // 村人を消す
       nearAlly = false;
     }, 1500);
     return;
@@ -120,8 +119,8 @@ document.addEventListener("keydown", (e) => {
 
   // 🎣 マップ2なら敵接触で釣りゲーム
   if (currentMapIndex === 1) {
-    updateEnemies(walkable, player, (amt) => {
-      takeDamage(amt, setStatus); // 敵接触時に一旦ダメージ
+    updateEnemies(walkable, player, (amt, enemyIndex) => {
+      takeDamage(amt, setStatus);
 
       startFishingGame((score) => {
         if (score >= 10) {
@@ -134,12 +133,16 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🎣 釣果: ブラックバス ${score}匹`);
         }
 
-        // 🛑 敵をマップから消す（村人と同じ方式）
+        // 🛑 敵を消す処理（マップから＆配列から）
         map[player.y][player.x] = "0";
+        removeEnemy(enemyIndex);
       });
     });
   } else {
-    updateEnemies(walkable, player, (amt) => takeDamage(amt, setStatus));
+    updateEnemies(walkable, player, (amt, enemyIndex) => {
+      takeDamage(amt, setStatus);
+      removeEnemy(enemyIndex); // 通常マップでも接触した敵は消える
+    });
   }
 
   if (checkGameOver(player, setStatus)) return;
