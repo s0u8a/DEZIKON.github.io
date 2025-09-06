@@ -61,164 +61,37 @@ const invasiveSpeciesQuiz = [
   }
 ];
 
-// クイズの内容をコンソールに出力する関数
-function displayQuiz() {
-  invasiveSpeciesQuiz.forEach((quiz, index) => {
-    console.log(`Q${index + 1}. ${quiz.question}`);
-    quiz.choices.forEach(choice => {
-      console.log(choice);
-    });
-    console.log(`**答え：${quiz.correctAnswer}**`);
-    console.log(`**解説：** ${quiz.explanation}`);
-    console.log(''); // 空行を追加
-  });
-}
-
-// インタラクティブなクイズゲーム
-class QuizGame {
-  constructor(quizData) {
-    this.quizData = quizData;
-    this.currentQuestion = 0;
-    this.score = 0;
-    this.userAnswers = [];
-  }
-
-  displayCurrentQuestion() {
-    if (this.currentQuestion >= this.quizData.length) {
-      this.showResults();
-      return;
-    }
-
-    const quiz = this.quizData[this.currentQuestion];
-    console.log(`\n=== 問題 ${this.currentQuestion + 1}/${this.quizData.length} ===`);
-    console.log(quiz.question);
-    quiz.choices.forEach(choice => {
-      console.log(choice);
-    });
-  }
-
-  answerQuestion(userAnswer) {
-    const quiz = this.quizData[this.currentQuestion];
-    const isCorrect = userAnswer.toUpperCase() === quiz.correctAnswer;
-    
-    this.userAnswers.push({
-      question: this.currentQuestion + 1,
-      userAnswer: userAnswer.toUpperCase(),
-      correctAnswer: quiz.correctAnswer,
-      isCorrect: isCorrect
-    });
-
-    if (isCorrect) {
-      this.score++;
-      console.log("正解！");
-    } else {
-      console.log(`不正解。正解は ${quiz.correctAnswer} です。`);
-    }
-    
-    console.log(`**解説：** ${quiz.explanation}`);
-    
-    this.currentQuestion++;
-    setTimeout(() => this.displayCurrentQuestion(), 2000);
-  }
-
-  showResults() {
-    console.log('\n=== クイズ終了 ===');
-    console.log(`あなたの得点: ${this.score}/${this.quizData.length}`);
-    console.log(`正答率: ${Math.round((this.score / this.quizData.length) * 100)}%`);
-    
-    if (this.score === this.quizData.length) {
-      console.log('素晴らしい！新潟県の外来種について完璧です！');
-    } else if (this.score >= this.quizData.length * 0.8) {
-      console.log('よくできました！外来種問題に詳しいですね。');
-    } else if (this.score >= this.quizData.length * 0.6) {
-      console.log('まずまずです。もう少し学習してみましょう。');
-    } else {
-      console.log('外来種について学ぶ良い機会ですね！');
-    }
-
-    const wrongAnswers = this.userAnswers.filter(answer => !answer.isCorrect);
-    if (wrongAnswers.length > 0) {
-      console.log('\n=== 間違えた問題の復習 ===');
-      wrongAnswers.forEach(answer => {
-        const quiz = this.quizData[answer.question - 1];
-        console.log(`Q${answer.question}: ${quiz.question}`);
-        console.log(`あなたの答え: ${answer.userAnswer}, 正解: ${answer.correctAnswer}`);
-        console.log(`解説: ${quiz.explanation}\n`);
-      });
-    }
-  }
-
-  start() {
-    console.log('=== 新潟県外来種クイズ開始 ===');
-    console.log('A、B、Cから選択して答えてください。');
-    this.displayCurrentQuestion();
-  }
-}
-
-// ランダムな問題を取得
+// ✅ ランダムで1問取得
 function getRandomQuiz() {
   const randomIndex = Math.floor(Math.random() * invasiveSpeciesQuiz.length);
   return invasiveSpeciesQuiz[randomIndex];
 }
 
-// キーワード検索
-function searchQuiz(keyword) {
-  return invasiveSpeciesQuiz.filter(quiz => 
-    quiz.question.includes(keyword) || 
-    quiz.choices.some(choice => choice.includes(keyword)) ||
-    quiz.explanation.includes(keyword)
-  );
-}
-
-// HTML表示用関数
-function displayQuizInHTML(containerId = 'quiz-container') {
-  const container = document.getElementById(containerId) || document.body;
-  
-  invasiveSpeciesQuiz.forEach((quiz, index) => {
-    const quizElement = document.createElement('div');
-    quizElement.className = 'quiz-item';
-    quizElement.innerHTML = `
-      <h3>Q${index + 1}. ${quiz.question}</h3>
-      <ul>
-        ${quiz.choices.map(choice => `<li>${choice}</li>`).join('')}
-      </ul>
-      <p><strong>答え：${quiz.correctAnswer}</strong></p>
-      <p><strong>解説：</strong> ${quiz.explanation}</p>
-      <hr>
-    `;
-    container.appendChild(quizElement);
-  });
-}
-
-// 使用例
-console.log('=== 新潟県外来種クイズ（選択肢付き） ===');
-displayQuiz();
-
-console.log('\n=== ランダムな問題 ===');
-const randomQuiz = getRandomQuiz();
-console.log(randomQuiz.question);
-randomQuiz.choices.forEach(choice => console.log(choice));
-console.log(`正解: ${randomQuiz.correctAnswer}`);
-
-
-// ✅ ここから追加
+// ✅ 修正版: クイズは1問だけランダムに出題
 export function startNiigataQuiz(onFinish) {
-  const game = new QuizGame(invasiveSpeciesQuiz);
-  game.start();
+  const quiz = getRandomQuiz();
 
-  setTimeout(() => {
-    if (onFinish) onFinish(game.score);
-  }, invasiveSpeciesQuiz.length * 3000);
+  const choiceText = quiz.choices.join("\n");
+  const userAnswer = prompt(
+    `📖 クイズ！\n${quiz.question}\n\n${choiceText}\n\n答えを A/B/C で入力してください:`
+  );
+
+  let correct = false;
+  if (userAnswer && userAnswer.toUpperCase() === quiz.correctAnswer) {
+    alert("⭕ 正解！ HP回復！");
+    correct = true;
+  } else {
+    alert(`❌ 不正解！ 正解は ${quiz.correctAnswer}\n${quiz.explanation}`);
+    correct = false;
+  }
+
+  if (onFinish) onFinish(correct);
 }
 
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     invasiveSpeciesQuiz,
-    QuizGame,
-    displayQuiz,
-    displayQuizInHTML,
     getRandomQuiz,
-    searchQuiz,
     startNiigataQuiz
   };
 }
