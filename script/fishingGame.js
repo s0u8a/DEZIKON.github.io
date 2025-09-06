@@ -4,7 +4,6 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startFishingGame(onFinish) {
   hideRPG();
 
-  // 既存のコンテナが残っていたら削除（←二重防止）
   const old = document.getElementById("fishingGame");
   if (old) old.remove();
 
@@ -41,7 +40,6 @@ export function startFishingGame(onFinish) {
   let score = 0;
   let time = 30;
   let timer;
-  let fishTimer;
 
   const pond = document.getElementById("fg-pond");
 
@@ -59,7 +57,7 @@ export function startFishingGame(onFinish) {
     fish.dataset.type = fishData.type;
 
     fish.style.position = "absolute";
-    fish.style.left = pond.clientWidth + "px"; // 右端から出現
+    fish.style.left = pond.clientWidth + "px";
     fish.style.top = Math.random() * (pond.clientHeight - 48) + "px";
     fish.style.width = "48px";
     fish.style.height = "auto";
@@ -78,8 +76,8 @@ export function startFishingGame(onFinish) {
 
     pond.appendChild(fish);
 
-    // 移動アニメーション
-    const speed = 1 + Math.random() * 2; // 魚ごとに速度ランダム
+    // 🔥 ここを修正（速さアップ）
+    const speed = 3 + Math.random() * 3; // 3〜6 px/フレーム
     const moveInterval = setInterval(() => {
       const currentX = parseFloat(fish.style.left);
       if (currentX < -50) {
@@ -97,13 +95,11 @@ export function startFishingGame(onFinish) {
     spawnFish();
     if (time <= 0) {
       clearInterval(timer);
-      clearInterval(fishTimer);
       endGame();
     }
   }
 
   function endGame() {
-    // 既存の解説モーダルを消してから作成（←二重防止）
     const oldModal = document.getElementById("fg-modal");
     if (oldModal) oldModal.remove();
 
