@@ -19,7 +19,7 @@ export function startFishingGame(onFinish) {
   container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.3)";
 
   container.innerHTML = `
-    <h1 style="font-size:2em; margin-bottom:10px; color:#002;">🎣 ブラックバス釣りゲーム</h1>
+    <h1 style="font-size:2em; margin-bottom:10px; color:#3399CC;">🎣 ブラックバス釣りゲーム</h1>
     <p style="margin:5px 0 15px; font-size:1.1em; color:#111;">
       敵に遭遇した！ブラックバスをできるだけ多く釣ろう！<br>
       ブラックバス＝加点、それ以外＝減点
@@ -120,8 +120,7 @@ export function startFishingGame(onFinish) {
       <h2 style="color:#002; margin-bottom:15px;">📖 信濃川の魚について</h2>
       <p style="margin-bottom:12px;">
         信濃川では、ブラックバスだけでなくアユ・サケ・ナマズも本来の生息魚<br>ではなく、外来種とされています。
-        外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。<br>
-        ゲームでは「ブラックバス＝加点」「それ以外＝減点」としていますが、実際の川ではどの魚が在来で、どの魚が外来なのかを正しく理解することがとても重要です。
+        外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。ゲームでは「ブラックバス＝加点」「それ以外＝減点」としていますが、実際の川ではどの魚が在来で、どの魚が外来なのかを正しく理解することがとても重要です。
       </p>
     
       
