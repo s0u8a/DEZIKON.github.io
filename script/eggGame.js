@@ -35,6 +35,7 @@ export function startEggGame(onFinish) {
 <div id="egg-field"
      style="width:100%;height:400px;
             background:url('./assets/images/tanshigame.png') center/cover no-repeat;
+            background-size: contain;
             position:relative;overflow:hidden;border:2px solid #900;">
 </div>
 
