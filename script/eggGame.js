@@ -27,16 +27,17 @@ export function startEggGame(onFinish) {
       ジャンボタニシの卵をつぶして田んぼを守れ！<br>
       制限時間内にできるだけ多くクリックしてつぶそう！
     </p>
-    <div class="hud" style="margin-bottom:10px; font-size:1.2em; color:deeppink;">
-      <span>つぶした数: <b id="egg-score">0</b></span>
-      <span>　残り: <b id="egg-time">15</b>s</span>
-      <button id="egg-start">スタート</button>
-    </div>
-    <div id="egg-field"
-         style="width:100%;height:400px;
-                background:url('./assets/images/tanshigame.png') center center / contain no-repeat;
-                position:relative;overflow:hidden;border:2px solid #900;">
-    </div>
+<div id="egg-field"
+     style="
+       width:100%;
+       height:400px;
+       position:relative;
+       overflow:hidden;
+       border:2px solid #900;
+     ">
+  <img src="./assets/images/tanshigame.png"
+       style="width:100%; height:100%; object-fit:fill; position:absolute; top:0; left:0; z-index:0;">
+</div>
   `;
 
   document.body.appendChild(container);
