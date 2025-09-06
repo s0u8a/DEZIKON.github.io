@@ -8,10 +8,10 @@ export function initEnemies(GRID) {
   for (let y = 0; y < GRID.length; y++) {
     for (let x = 0; x < GRID[y].length; x++) {
       if (GRID[y][x] === "E") {
-        enemies.push({ x, y, dx: 1, dy: 0, type: "normal" }); // 通常の敵
-        GRID[y][x] = "0"; // マップから消す
+        enemies.push({ x, y, dx: 1, dy: 0, type: "E" }); // 通常の敵
+        GRID[y][x] = "0"; // マップからは消す
       } else if (GRID[y][x] === "F") {
-        enemies.push({ x, y, dx: 1, dy: 0, type: "frog" });   // 🐸 カエル
+        enemies.push({ x, y, dx: 1, dy: 0, type: "F" }); // カエル
         GRID[y][x] = "0";
       }
     }
@@ -25,12 +25,11 @@ export function updateEnemies(walkable, player, onHit) {
     const nx = e.x + e.dx;
     const ny = e.y + e.dy;
 
-    // 移動できるなら進む
     if (walkable(nx, ny)) {
       e.x = nx;
       e.y = ny;
     } else {
-      // ランダムに方向転換（現在の向き以外から選ぶとより自然）
+      // ランダムに方向転換
       const dirs = [
         { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
         { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
@@ -45,15 +44,12 @@ export function updateEnemies(walkable, player, onHit) {
     if (e.x === player.x && e.y === player.y) {
       if (onHit && player.invincibleTime <= 0) {
         onHit(1, i, e.type);
-        player.invincibleTime = 30; // 無敵時間をリセット（30フレーム例）
+        player.invincibleTime = 30; // 無敵時間
       }
     }
   }
 
-  // 無敵時間を減少
-  if (player.invincibleTime > 0) {
-    player.invincibleTime--;
-  }
+  if (player.invincibleTime > 0) player.invincibleTime--;
 }
 
 // 敵を描画
@@ -62,17 +58,15 @@ export function drawEnemies(ctx, imgEnemy, imgFrog, TILE, offsetX, offsetY, canv
   for (let e of enemies) {
     const dx = (e.x - offsetX) * TILE;
     const dy = (e.y - offsetY) * TILE;
-
-    // 画面外は描画しない
     if (dx + TILE < 0 || dy + TILE < 0 || dx > canvasW || dy > canvasH) continue;
 
     const pulse = 1 + 0.1 * Math.sin(enemyAnim * 0.1);
     const size = TILE * pulse;
     const off = (TILE - size) / 2;
 
-    if (e.type === "normal") {
+    if (e.type === "E") {
       ctx.drawImage(imgEnemy, dx + off, dy + off, size, size);
-    } else if (e.type === "frog") {
+    } else if (e.type === "F") {
       ctx.drawImage(imgFrog, dx + off, dy + off, size, size);
     }
   }
