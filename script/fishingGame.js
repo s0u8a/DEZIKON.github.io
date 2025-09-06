@@ -95,50 +95,54 @@ export function startFishingGame(onFinish) {
     }
   }
 
-function endGame() {
-  const oldModal = document.getElementById("fg-modal");
-  if (oldModal) oldModal.remove();
+  function endGame() {
+    const oldModal = document.getElementById("fg-modal");
+    if (oldModal) oldModal.remove();
 
-  const modal = document.createElement("div");
-  modal.id = "fg-modal";
-  modal.style.position = "fixed";
-  modal.style.top = "50%";
-  modal.style.left = "50%";
-  modal.style.transform = "translate(-50%, -50%)";
-  modal.style.background = "#fff";
-  modal.style.padding = "20px";
-  modal.style.borderRadius = "10px";
-  modal.style.width = "600px";
-  modal.style.color = "#111";
-  modal.style.fontSize = "1.1em";
-  modal.style.lineHeight = "1.8";
-  modal.style.textAlign = "center";
-  modal.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
-  modal.style.zIndex = "1000";
+    const modal = document.createElement("div");
+    modal.id = "fg-modal";
+    modal.style.position = "fixed";
+    modal.style.top = "50%";
+    modal.style.left = "50%";
+    modal.style.transform = "translate(-50%, -50%)";
+    modal.style.background = "#fff";
+    modal.style.padding = "30px 40px";
+    modal.style.borderRadius = "12px";
+    modal.style.width = "600px";
+    modal.style.color = "#222";
+    modal.style.fontSize = "1.05em";
+    modal.style.lineHeight = "1.8";
+    modal.style.textAlign = "center";
+    modal.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
+    modal.style.zIndex = "1000";
 
-  modal.innerHTML = `
-    <h2 style="color:#002; margin-bottom:15px;">📖 信濃川の魚について</h2>
-    <p style="text-align:justify; text-align-last:center; margin-bottom:15px;">
-      信濃川では、ブラックバスだけでなくアユ・サケ・ナマズも本来の生息魚ではなく、外来種とされています。<br>
-      外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。
-    </p>
-    <p style="text-align:justify; text-align-last:center; margin-bottom:20px;">
-      ゲームでは「ブラックバス＝加点」「それ以外＝減点」としていますが、<br>
-      実際の川ではどの魚が在来で、どの魚が外来なのかを正しく理解することがとても重要です。
-    </p>
-    <p style="margin-top:15px; font-weight:bold; font-size:1.3em; color:#333;">
-      🎮 あなたのスコア: ${score}
-    </p>
-    <button id="fg-close" style="margin-top:20px; padding:10px 24px; font-size:1em; border-radius:6px;">閉じる</button>
-  `;
+    modal.innerHTML = `
+      <h2 style="color:#002; margin-bottom:20px; font-size:1.6em;">📖 信濃川の魚について</h2>
+      <p style="margin-bottom:15px;">
+        信濃川では、ブラックバスだけでなくアユ・サケ・ナマズも本来の生息魚ではなく、外来種とされています。<br>
+        外来種は在来の生態系に影響を与える可能性があり、環境保全の観点から注意が必要です。
+      </p>
+      <p style="margin-bottom:20px;">
+        ゲームでは「ブラックバス＝加点」「それ以外＝減点」としていますが、<br>
+        実際の川ではどの魚が在来で、どの魚が外来なのかを正しく理解することがとても重要です。
+      </p>
+      <p style="margin-top:10px; font-weight:bold; font-size:1.2em; color:#333;">
+        🎮 あなたのスコア: ${score}
+      </p>
+      <button id="fg-close" style="margin-top:20px; padding:8px 20px; font-size:1em;">閉じる</button>
+    `;
 
-  document.body.appendChild(modal);
+    document.body.appendChild(modal);
 
-  document.getElementById("fg-close").onclick = () => {
-    modal.remove();
-    document.body.removeChild(container);
-    showRPG();
-    if (onFinish) onFinish(score);
+    document.getElementById("fg-close").onclick = () => {
+      modal.remove();
+      document.body.removeChild(container);
+      showRPG();
+      if (onFinish) onFinish(score);
+    };
+  }
+
+  document.getElementById("fg-start").onclick = () => {
+    timer = setInterval(tick, 1000);
   };
 }
-
