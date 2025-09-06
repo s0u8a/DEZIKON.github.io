@@ -4,6 +4,7 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startEggGame(onFinish) {
   hideRPG();
 
+  // コンテナ作成
   const container = document.createElement("div");
   container.id = "eggGame";
   container.style.width = "760px";
@@ -13,21 +14,22 @@ export function startEggGame(onFinish) {
   container.style.padding = "20px";
   container.style.borderRadius = "12px";
   container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.3)";
+  container.style.position = "relative";
+  container.style.zIndex = "1000"; // RPGより上に表示
 
   container.innerHTML = `
-    <h1 style="font-size:2em; margin-bottom:10px; color:#800;">🥚 タニシ卵つぶしゲーム</h1>
-    <h2 style="margin:5px 0 15px; color:#333;">ジャンボタニシの卵をつぶして田んぼを守れ！</h2>
-    <p style="margin:5px 0 15px; font-size:1.1em; color:#444;">
-      制限時間内にできるだけ多く卵をクリックしてつぶそう。<br>
-      つぶした数に応じて報酬がもらえるかも？
+    <h1 style="font-size:2em; margin-bottom:10px; color:#900;">🥚 タニシ卵つぶしゲーム</h1>
+    <p style="margin:5px 0 15px; font-size:1.1em; color:#222;">
+      ジャンボタニシの卵をつぶして田んぼを守れ！<br>
+      制限時間内にできるだけ多くクリックしてつぶそう！
     </p>
     <div class="hud" style="margin-bottom:10px;">
-      <span class="pill">つぶした数: <b id="egg-hit">0</b></span>
-      <span class="pill">残り: <b id="egg-time">15</b>s</span>
+      <span>つぶした数: <b id="egg-score">0</b></span>
+      <span>残り: <b id="egg-time">15</b>s</span>
       <button id="egg-start">スタート</button>
     </div>
-    <div class="field" id="egg-field"
-         style="width:100%;height:400px;background:#fdd;position:relative;overflow:hidden;border:2px solid #800;">
+    <div id="egg-field"
+         style="width:100%;height:400px;background:#fdd;position:relative;overflow:hidden;border:2px solid #900;">
     </div>
   `;
 
@@ -40,29 +42,19 @@ export function startEggGame(onFinish) {
 
   function spawnEgg() {
     const egg = document.createElement("img");
-    egg.src = "./assets/images/tamago.png"; // 🥚生卵画像
+    egg.src = "./assets/images/tanishi.png";
     egg.style.position = "absolute";
+    egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
+    egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
     egg.style.width = "32px";
     egg.style.height = "32px";
-
-    const maxX = field.clientWidth - 40;
-    const maxY = field.clientHeight - 40;
-    egg.style.left = Math.floor(Math.random() * maxX) + "px";
-    egg.style.top = Math.floor(Math.random() * maxY) + "px";
-
     egg.style.cursor = "pointer";
 
     egg.onclick = () => {
       score++;
-      document.getElementById("egg-hit").textContent = score;
-
-      // 👣 gucha.png に変更（潰された卵）
+      document.getElementById("egg-score").textContent = score;
       egg.src = "./assets/images/gucha.png";
-
-      // 0.5秒後に消える
-      setTimeout(() => {
-        egg.remove();
-      }, 500);
+      setTimeout(() => egg.remove(), 300);
     };
 
     field.appendChild(egg);
@@ -79,13 +71,28 @@ export function startEggGame(onFinish) {
   }
 
   function endGame() {
-    alert(`ゲーム終了！つぶした数: ${score}`);
-    document.body.removeChild(container);
+    // 🎯 ゲーム終了処理
+    alert(`終了！つぶした数: ${score}`);
+
+    // 🎯 コンテナを確実に削除
+    if (document.body.contains(container)) {
+      document.body.removeChild(container);
+    }
+
+    // 🎯 RPG画面を復帰
     showRPG();
+
+    // 🎯 コールバック呼び出し
     if (onFinish) onFinish(score);
   }
 
   document.getElementById("egg-start").onclick = () => {
+    score = 0;
+    time = 15;
+    document.getElementById("egg-score").textContent = score;
+    document.getElementById("egg-time").textContent = time;
+    field.innerHTML = "";
+    clearInterval(timer);
     timer = setInterval(tick, 1000);
   };
 }
