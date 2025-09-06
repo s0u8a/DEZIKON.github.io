@@ -27,23 +27,16 @@ export function startEggGame(onFinish) {
       ジャンボタニシの卵をつぶして田んぼを守れ！<br>
       制限時間内にできるだけ多くクリックしてつぶそう！
     </p>
-    <div class="hud" style="margin-bottom:10px; font-size:1.2em; color:#c06;">
+    <div class="hud" style="margin-bottom:10px; font-size:1.2em; color:deeppink;">
       <span>つぶした数: <b id="egg-score">0</b></span>
-      <span style="margin-left:15px;">残り: <b id="egg-time">15</b>s</span>
-      <button id="egg-start" style="margin-left:15px;">スタート</button>
+      <span>　残り: <b id="egg-time">15</b>s</span>
+      <button id="egg-start">スタート</button>
     </div>
-<div id="egg-field"
-     style="
-       width:100%;
-       height:400px;
-       position:relative;
-       overflow:hidden;
-       border:2px solid #900;
-     ">
-  <img src="./assets/images/tanshigame.png"
-       style="width:100%; height:100%; object-fit:fill; position:absolute; top:0; left:0; z-index:0;">
-</div>
-
+    <div id="egg-field"
+         style="width:100%;height:400px;
+                background:url('./assets/images/tanshigame.png') center center / contain no-repeat;
+                position:relative;overflow:hidden;border:2px solid #900;">
+    </div>
   `;
 
   document.body.appendChild(container);
@@ -55,7 +48,7 @@ export function startEggGame(onFinish) {
 
   function spawnEgg() {
     const egg = document.createElement("img");
-    egg.src = "./assets/images/tamago.png"; // 通常の卵
+    egg.src = "./assets/images/tamago.png"; // 卵画像
     egg.style.position = "absolute";
     egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
     egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
@@ -66,7 +59,7 @@ export function startEggGame(onFinish) {
     egg.onclick = () => {
       score++;
       document.getElementById("egg-score").textContent = score;
-      egg.src = "./assets/images/gucha.png"; // つぶれた画像に変更
+      egg.src = "./assets/images/gucha.png"; // つぶれた画像
       setTimeout(() => egg.remove(), 300);
     };
 
@@ -95,7 +88,6 @@ export function startEggGame(onFinish) {
     // RPG画面を復帰
     showRPG();
 
-    // コールバック呼び出し
     if (onFinish) onFinish(score);
   }
 
@@ -104,7 +96,11 @@ export function startEggGame(onFinish) {
     time = 15;
     document.getElementById("egg-score").textContent = score;
     document.getElementById("egg-time").textContent = time;
-    field.innerHTML = "";
+
+    // 卵だけ消す（背景は消さない）
+    const eggs = field.querySelectorAll("img");
+    eggs.forEach(e => e.remove());
+
     clearInterval(timer);
     timer = setInterval(tick, 1000);
   };
