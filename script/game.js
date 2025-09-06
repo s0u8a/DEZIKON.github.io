@@ -1,3 +1,4 @@
+// script/game.js
 import { maps, tile } from "./map.js";
 import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js";
@@ -20,7 +21,7 @@ const images = {
   floor: new Image(),
   wall: new Image(),
   enemy: new Image(),
-  enemy2: new Image(), // 🆕 カエル用
+  enemy2: new Image(), // 🐸 カエル用
   item: new Image(),
   ally: new Image(),
   goal: new Image(),
@@ -30,7 +31,7 @@ const images = {
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
 images.enemy.src = "./assets/images/enemy.png";
-images.enemy2.src = "./assets/images/kaeru.png"; // 🆕 カエル画像
+images.enemy2.src = "./assets/images/kaeru.png"; // 🐸 カエル画像
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
@@ -120,11 +121,11 @@ document.addEventListener("keydown", (e) => {
     onTile(nx, ny);
   }
 
-  // 🎣 マップ2なら敵接触イベント
-  if (currentMapIndex === 1) {
-    updateEnemies(walkable, player, (amt, enemyIndex, type) => {
-      if (type === "E") {
-        // 通常の敵 → 釣りゲーム
+  // 🛑 敵の処理（全マップ共通）
+  updateEnemies(walkable, player, (amt, enemyIndex, type) => {
+    if (type === "normal") {
+      // 🎣 通常敵 → 釣りゲームはマップ2だけ
+      if (currentMapIndex === 1) {
         takeDamage(amt, setStatus);
         startFishingGame((score) => {
           if (score >= 10) {
@@ -139,28 +140,30 @@ document.addEventListener("keydown", (e) => {
           map[player.y][player.x] = "0";
           removeEnemy(enemyIndex);
         });
-      } else if (type === "F") {
-        // 🐸 カエル → 新潟クイズ
-        setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
-        startNiigataQuiz((correct) => {
-          if (correct) {
-            heal(1, setStatus);
-            setStatus(`📝 クイズ正解！HP回復！`);
-          } else {
-            takeDamage(1, setStatus);
-            setStatus(`❌ クイズ不正解…HP減少`);
-          }
-          map[player.y][player.x] = "0";
-          removeEnemy(enemyIndex);
-        });
+      } else {
+        // 他のマップでは普通にダメージ
+        takeDamage(amt, setStatus);
+        removeEnemy(enemyIndex);
       }
-    });
-  } else {
-    updateEnemies(walkable, player, (amt, enemyIndex) => {
-      takeDamage(amt, setStatus);
-      removeEnemy(enemyIndex); // 通常マップでも接触した敵は消える
-    });
-  }
+    } else if (type === "frog") {
+      // 🐸 カエル → 全マップでクイズ
+      setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
+
+      // 👉 クイズ開始
+      startNiigataQuiz((correct) => {
+        if (correct) {
+          heal(1, setStatus);
+          setStatus("⭕ 正解！HP回復！");
+        } else {
+          takeDamage(1, setStatus);
+          setStatus("❌ 不正解！HP減少");
+        }
+
+        map[player.y][player.x] = "0";
+        removeEnemy(enemyIndex);
+      });
+    }
+  });
 
   if (checkGameOver(player, setStatus)) return;
 });
@@ -183,7 +186,7 @@ function draw() {
     }
   }
 
-  drawEnemies(ctx, images.enemy, tile, 0, 0, map[0].length * tile, map.length * tile);
+  drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
 
