@@ -83,7 +83,6 @@ class QuizGame {
     this.userAnswers = [];
   }
 
-  // 現在の問題を表示
   displayCurrentQuestion() {
     if (this.currentQuestion >= this.quizData.length) {
       this.showResults();
@@ -98,7 +97,6 @@ class QuizGame {
     });
   }
 
-  // 答えをチェックして次の問題へ
   answerQuestion(userAnswer) {
     const quiz = this.quizData[this.currentQuestion];
     const isCorrect = userAnswer.toUpperCase() === quiz.correctAnswer;
@@ -123,7 +121,6 @@ class QuizGame {
     setTimeout(() => this.displayCurrentQuestion(), 2000);
   }
 
-  // 結果を表示
   showResults() {
     console.log('\n=== クイズ終了 ===');
     console.log(`あなたの得点: ${this.score}/${this.quizData.length}`);
@@ -139,7 +136,6 @@ class QuizGame {
       console.log('外来種について学ぶ良い機会ですね！');
     }
 
-    // 間違えた問題を表示
     const wrongAnswers = this.userAnswers.filter(answer => !answer.isCorrect);
     if (wrongAnswers.length > 0) {
       console.log('\n=== 間違えた問題の復習 ===');
@@ -152,7 +148,6 @@ class QuizGame {
     }
   }
 
-  // ゲームを開始
   start() {
     console.log('=== 新潟県外来種クイズ開始 ===');
     console.log('A、B、Cから選択して答えてください。');
@@ -197,23 +192,25 @@ function displayQuizInHTML(containerId = 'quiz-container') {
 
 // 使用例
 console.log('=== 新潟県外来種クイズ（選択肢付き） ===');
-
-// 全問題を表示
 displayQuiz();
 
-// クイズゲームの開始例
-// const game = new QuizGame(invasiveSpeciesQuiz);
-// game.start();
-// ゲームを進めるには: game.answerQuestion('A') のように答える
-
-// ランダムな問題を表示
 console.log('\n=== ランダムな問題 ===');
 const randomQuiz = getRandomQuiz();
 console.log(randomQuiz.question);
 randomQuiz.choices.forEach(choice => console.log(choice));
 console.log(`正解: ${randomQuiz.correctAnswer}`);
 
-// エクスポート（Node.js環境で使用する場合）
+
+// ✅ ここから追加
+export function startNiigataQuiz(onFinish) {
+  const game = new QuizGame(invasiveSpeciesQuiz);
+  game.start();
+
+  setTimeout(() => {
+    if (onFinish) onFinish(game.score);
+  }, invasiveSpeciesQuiz.length * 3000);
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     invasiveSpeciesQuiz,
@@ -221,6 +218,7 @@ if (typeof module !== 'undefined' && module.exports) {
     displayQuiz,
     displayQuizInHTML,
     getRandomQuiz,
-    searchQuiz
+    searchQuiz,
+    startNiigataQuiz
   };
 }
