@@ -25,8 +25,8 @@ export function startFishingGame(onFinish) {
       ブラックバス＝加点、それ以外＝減点
     </p>
     <div class="hud" style="margin-bottom:10px;">
-      <span class="pill">スコア: <b id="fg-hit">0</b></span>
-      <span class="pill">残り: <b id="fg-time">30</b>s</span>
+      <span class="pill" style="color:#0288d1;">スコア: <b id="fg-hit">0</b></span>
+      <span class="pill" style="color:#0288d1; margin-left:15px;">残り: <b id="fg-time">30</b>s</span>
       <button id="fg-start">スタート</button>
     </div>
     <div class="pond" id="fg-pond"
