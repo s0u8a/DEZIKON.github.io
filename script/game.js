@@ -4,6 +4,7 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
+import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズを追加
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -19,6 +20,7 @@ const images = {
   floor: new Image(),
   wall: new Image(),
   enemy: new Image(),
+  enemy2: new Image(), // 🆕 カエル用
   item: new Image(),
   ally: new Image(),
   goal: new Image(),
@@ -28,6 +30,7 @@ const images = {
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
 images.enemy.src = "./assets/images/enemy.png";
+images.enemy2.src = "./assets/images/kaeru.png"; // 🆕 カエル画像
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
@@ -119,24 +122,38 @@ document.addEventListener("keydown", (e) => {
 
   // 🎣 マップ2なら敵接触で釣りゲーム
   if (currentMapIndex === 1) {
-    updateEnemies(walkable, player, (amt, enemyIndex) => {
-      takeDamage(amt, setStatus);
-
-      startFishingGame((score) => {
-        if (score >= 10) {
-          heal(1, setStatus);
-          setStatus(`🐟 ブラックバスを ${score} 匹釣った！HP回復！`);
-        } else if (score <= 0) {
-          takeDamage(1, setStatus);
-          setStatus(`❌ ブラックバスが少なすぎる…外道ばかり！HP減少`);
-        } else {
-          setStatus(`🎣 釣果: ブラックバス ${score}匹`);
-        }
-
-        // 🛑 敵を消す処理（マップから＆配列から）
-        map[player.y][player.x] = "0";
-        removeEnemy(enemyIndex);
-      });
+    updateEnemies(walkable, player, (amt, enemyIndex, type) => {
+      if (type === "E") {
+        // 通常の敵 → 釣りゲーム
+        takeDamage(amt, setStatus);
+        startFishingGame((score) => {
+          if (score >= 10) {
+            heal(1, setStatus);
+            setStatus(`🐟 ブラックバスを ${score} 匹釣った！HP回復！`);
+          } else if (score <= 0) {
+            takeDamage(1, setStatus);
+            setStatus(`❌ ブラックバスが少なすぎる…外道ばかり！HP減少`);
+          } else {
+            setStatus(`🎣 釣果: ブラックバス ${score}匹`);
+          }
+          map[player.y][player.x] = "0";
+          removeEnemy(enemyIndex);
+        });
+      } else if (type === "F") {
+        // 🐸 カエル → 新潟クイズ
+        setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
+        startNiigataQuiz((score) => {
+          if (score >= 3) {
+            heal(1, setStatus);
+            setStatus(`📝 クイズ正解！HP回復！`);
+          } else {
+            takeDamage(1, setStatus);
+            setStatus(`❌ クイズ不正解…HP減少`);
+          }
+          map[player.y][player.x] = "0";
+          removeEnemy(enemyIndex);
+        });
+      }
     });
   } else {
     updateEnemies(walkable, player, (amt, enemyIndex) => {
@@ -161,6 +178,8 @@ function draw() {
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
+      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);  // 通常敵
+      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸 カエル敵
     }
   }
 
