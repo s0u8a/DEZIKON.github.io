@@ -8,11 +8,15 @@ export function startEggGame(onFinish) {
   const old = document.getElementById("eggGame");
   if (old) old.remove();
 
-  // 画像パスを絶対パスまたはルートパスに修正
+  // GitHub Pages対応の画像パス
+  const basePath = window.location.pathname.includes('/DEZIKON.github.io') 
+    ? '/DEZIKON.github.io' 
+    : '';
+  
   const imagePaths = {
-    background: "assets/images/tanshigame.png",
-    egg: "assets/images/tamago.png",
-    crushed: "assets/images/gucha.png"
+    background: `${basePath}/assets/images/tanshigame.png`,
+    egg: `${basePath}/assets/images/tamago.png`,
+    crushed: `${basePath}/assets/images/gucha.png`
   };
 
   // コンテナ作成
@@ -36,8 +40,8 @@ export function startEggGame(onFinish) {
     </p>
     <div class="hud" style="margin-bottom:10px;">
       <span style="color:deeppink;">つぶした数: <b id="egg-score">0</b></span>
-      <span>残り: <b id="egg-time">15</b>s</span>
-      <button id="egg-start">スタート</button>
+      <span style="margin-left:20px;">残り: <b id="egg-time">15</b>s</span>
+      <button id="egg-start" style="margin-left:20px;">スタート</button>
     </div>
     <div id="egg-field"
          style="width:760px;height:400px;
@@ -53,81 +57,65 @@ export function startEggGame(onFinish) {
   let time = 15;
   let timer;
 
-  // 画像の事前読み込み関数
-  function preloadImages() {
-    return Promise.all(
-      Object.values(imagePaths).map(src => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(src);
-          img.onerror = () => {
-            console.warn(`画像の読み込みに失敗: ${src}`);
-            resolve(src); // エラーでも続行
-          };
-          img.src = src;
-        });
-      })
-    );
-  }
-
   function spawnEgg() {
-    const egg = document.createElement("div");
-    
-    // まず絵文字版を作成（確実に動作する）
-    egg.innerHTML = "🥚";
+    const egg = document.createElement("img");
+    egg.src = imagePaths.egg;
     egg.dataset.egg = "true";
     egg.style.position = "absolute";
     egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
     egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
     egg.style.width = "32px";
     egg.style.height = "32px";
-    egg.style.fontSize = "32px";
     egg.style.cursor = "pointer";
-    egg.style.userSelect = "none";
-    egg.style.textAlign = "center";
-    egg.style.lineHeight = "32px";
     
-    // 画像版を試行
-    const imgEgg = document.createElement("img");
-    imgEgg.src = imagePaths.egg;
-    imgEgg.style.width = "32px";
-    imgEgg.style.height = "32px";
-    
-    imgEgg.onload = () => {
-      // 画像読み込み成功時は画像に置き換え
-      egg.innerHTML = "";
-      egg.appendChild(imgEgg);
-    };
-    
-    imgEgg.onerror = () => {
-      // 画像読み込み失敗時はそのまま絵文字を使用
-      console.warn("卵画像の読み込みに失敗:", imagePaths.egg);
+    // 画像読み込みエラー時の処理 - 絵文字で代替
+    egg.onerror = () => {
+      // imgタグをdivに置き換えて絵文字表示
+      const eggDiv = document.createElement("div");
+      eggDiv.innerHTML = "🔴"; // 赤い丸でタニシの卵を表現
+      eggDiv.dataset.egg = "true";
+      eggDiv.style.position = "absolute";
+      eggDiv.style.left = egg.style.left;
+      eggDiv.style.top = egg.style.top;
+      eggDiv.style.width = "32px";
+      eggDiv.style.height = "32px";
+      eggDiv.style.fontSize = "24px";
+      eggDiv.style.cursor = "pointer";
+      eggDiv.style.textAlign = "center";
+      eggDiv.style.lineHeight = "32px";
+      eggDiv.style.userSelect = "none";
+      
+      eggDiv.onclick = () => {
+        score++;
+        document.getElementById("egg-score").textContent = score;
+        eggDiv.innerHTML = "💥";
+        setTimeout(() => eggDiv.remove(), 300);
+      };
+      
+      // 元のimgを削除して新しいdivを追加
+      egg.remove();
+      field.appendChild(eggDiv);
     };
 
     egg.onclick = () => {
       score++;
       document.getElementById("egg-score").textContent = score;
+      egg.src = imagePaths.crushed;
       
-      // つぶれた表示
-      if (egg.querySelector('img')) {
-        // 画像版の場合
-        const crushedImg = document.createElement("img");
-        crushedImg.src = imagePaths.crushed;
-        crushedImg.style.width = "32px";
-        crushedImg.style.height = "32px";
-        
-        crushedImg.onload = () => {
-          egg.innerHTML = "";
-          egg.appendChild(crushedImg);
-        };
-        
-        crushedImg.onerror = () => {
-          egg.innerHTML = "💥";
-        };
-      } else {
-        // 絵文字版の場合
-        egg.innerHTML = "💥";
-      }
+      // つぶれた画像の読み込みエラー時の処理
+      egg.onerror = () => {
+        egg.style.display = "none";
+        const crushed = document.createElement("div");
+        crushed.innerHTML = "💥";
+        crushed.style.position = "absolute";
+        crushed.style.left = egg.style.left;
+        crushed.style.top = egg.style.top;
+        crushed.style.fontSize = "32px";
+        crushed.style.textAlign = "center";
+        crushed.style.userSelect = "none";
+        field.appendChild(crushed);
+        setTimeout(() => crushed.remove(), 300);
+      };
       
       setTimeout(() => egg.remove(), 300);
     };
@@ -158,11 +146,7 @@ export function startEggGame(onFinish) {
     if (onFinish) onFinish(score);
   }
 
-  // スタートボタンの処理
-  document.getElementById("egg-start").onclick = async () => {
-    // 画像の事前読み込み
-    await preloadImages();
-    
+  document.getElementById("egg-start").onclick = () => {
     score = 0;
     time = 15;
     document.getElementById("egg-score").textContent = score;
