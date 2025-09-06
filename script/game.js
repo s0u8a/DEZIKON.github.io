@@ -1,11 +1,10 @@
-// script/game.js
 import { maps, tile } from "./map.js";
 import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズを追加
+import { startNiigataQuiz } from "./niigataquiz.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -41,6 +40,10 @@ images.heart.src = "./assets/images/ha-to.png";
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
+
+// ✅ 追加: 一時停止用
+let isPaused = false;
+let gameLoopId = null;
 
 initPlayer(map);
 initEnemies(map);
@@ -85,13 +88,14 @@ function onTile(x, y) {
 }
 
 document.addEventListener("keydown", (e) => {
+  if (isPaused) return; // ✅ 一時停止中は操作できない
+
   let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
   else if (e.key === "ArrowDown") ny++;
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
-    // 🥚 村人イベント → 卵ゲーム
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
@@ -102,7 +106,7 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🥚 卵つぶしスコア: ${score}`);
         }
       });
-      map[player.y][player.x] = "0"; // 村人を消す
+      map[player.y][player.x] = "0";
       nearAlly = false;
     }, 1500);
     return;
@@ -121,10 +125,9 @@ document.addEventListener("keydown", (e) => {
     onTile(nx, ny);
   }
 
-  // 🛑 敵の処理（全マップ共通）
+  // 敵の処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
-      // 🎣 通常敵 → 釣りゲームはマップ2だけ
       if (currentMapIndex === 1) {
         takeDamage(amt, setStatus);
         startFishingGame((score) => {
@@ -141,15 +144,17 @@ document.addEventListener("keydown", (e) => {
           removeEnemy(enemyIndex);
         });
       } else {
-        // 他のマップでは普通にダメージ
         takeDamage(amt, setStatus);
         removeEnemy(enemyIndex);
       }
     } else if (type === "frog") {
-      // 🐸 カエル → 全マップでクイズ
+      // 🐸 カエル → クイズ画面へ
       setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
 
-      // 👉 クイズ開始
+      // ✅ ゲーム一時停止
+      isPaused = true;
+      cancelAnimationFrame(gameLoopId);
+
       startNiigataQuiz((correct) => {
         if (correct) {
           heal(1, setStatus);
@@ -161,6 +166,10 @@ document.addEventListener("keydown", (e) => {
 
         map[player.y][player.x] = "0";
         removeEnemy(enemyIndex);
+
+        // ✅ ゲーム再開
+        isPaused = false;
+        draw();
       });
     }
   });
@@ -169,6 +178,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 function draw() {
+  if (isPaused) return;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let y = 0; y < map.length; y++) {
@@ -179,10 +190,10 @@ function draw() {
       const cell = map[y][x];
       if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
-      if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
-      if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
-      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);  // 通常敵
-      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸 カエル敵
+      if (cell === "A") ctx.drawImage(images.ally, dx,dy, tile, tile);
+      if (cell === "G") ctx.drawImage(images.goal, dx,dy, tile, tile);
+      if (cell === "E") ctx.drawImage(images.enemy, dx,dy, tile, tile);
+      if (cell === "F") ctx.drawImage(images.enemy2, dx,dy, tile, tile);
     }
   }
 
@@ -191,7 +202,7 @@ function draw() {
   drawLifeGauge(ctx, images.heart, tile, player);
 
   updatePlayer();
-  requestAnimationFrame(draw);
+  gameLoopId = requestAnimationFrame(draw);
 }
 
 window.startGame = function () {
