@@ -4,7 +4,7 @@ import { showRPG, hideRPG } from "./screen.js";
 export function startEggGame(onFinish) {
   hideRPG();
 
-  // 既に古い eggGame があったら消す
+  // 既に古い eggGame があったら消す（←二重防止）
   const old = document.getElementById("eggGame");
   if (old) old.remove();
 
@@ -19,7 +19,7 @@ export function startEggGame(onFinish) {
   container.style.borderRadius = "12px";
   container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.3)";
   container.style.position = "relative";
-  container.style.zIndex = "1000"; // RPGより上に表示
+  container.style.zIndex = "1000";
 
   container.innerHTML = `
     <h1 style="font-size:2em; margin-bottom:10px; color:#900;">🥚 タニシ卵つぶしゲーム</h1>
@@ -27,17 +27,16 @@ export function startEggGame(onFinish) {
       ジャンボタニシの卵をつぶして田んぼを守れ！<br>
       制限時間内にできるだけ多くクリックしてつぶそう！
     </p>
-<div id="egg-field"
-     style="
-       width:100%;
-       height:400px;
-       position:relative;
-       overflow:hidden;
-       border:2px solid #900;
-     ">
-  <img src="./assets/images/tanshigame.png"
-       style="width:100%; height:100%; object-fit:fill; position:absolute; top:0; left:0; z-index:0;">
-</div>
+    <div class="hud" style="margin-bottom:10px;">
+      <span style="color:deeppink;">つぶした数: <b id="egg-score">0</b></span>
+      <span>残り: <b id="egg-time">15</b>s</span>
+      <button id="egg-start">スタート</button>
+    </div>
+    <div id="egg-field"
+         style="width:100%;height:400px;
+                background:url('./assets/images/tanshigame.png') center/contain no-repeat;
+                position:relative;overflow:hidden;border:2px solid #900;">
+    </div>
   `;
 
   document.body.appendChild(container);
@@ -50,6 +49,7 @@ export function startEggGame(onFinish) {
   function spawnEgg() {
     const egg = document.createElement("img");
     egg.src = "./assets/images/tamago.png"; // 卵画像
+    egg.dataset.egg = "true"; // ← 卵であることを識別
     egg.style.position = "absolute";
     egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
     egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
@@ -60,7 +60,7 @@ export function startEggGame(onFinish) {
     egg.onclick = () => {
       score++;
       document.getElementById("egg-score").textContent = score;
-      egg.src = "./assets/images/gucha.png"; // つぶれた画像
+      egg.src = "./assets/images/gucha.png"; // つぶれた画像に差し替え
       setTimeout(() => egg.remove(), 300);
     };
 
@@ -82,11 +82,9 @@ export function startEggGame(onFinish) {
 
     alert(`終了！つぶした数: ${score}`);
 
-    // eggGame を必ず削除
     const old = document.getElementById("eggGame");
     if (old) old.remove();
 
-    // RPG画面を復帰
     showRPG();
 
     if (onFinish) onFinish(score);
@@ -98,8 +96,8 @@ export function startEggGame(onFinish) {
     document.getElementById("egg-score").textContent = score;
     document.getElementById("egg-time").textContent = time;
 
-    // 卵だけ消す（背景は消さない）
-    const eggs = field.querySelectorAll("img");
+    // 🎯 卵だけ削除（スタートボタンは残る）
+    const eggs = field.querySelectorAll("img[data-egg='true']");
     eggs.forEach(e => e.remove());
 
     clearInterval(timer);
