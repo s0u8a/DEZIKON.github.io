@@ -120,7 +120,7 @@ document.addEventListener("keydown", (e) => {
     onTile(nx, ny);
   }
 
-  // 🎣 マップ2なら敵接触で釣りゲーム
+  // 🎣 マップ2なら敵接触イベント
   if (currentMapIndex === 1) {
     updateEnemies(walkable, player, (amt, enemyIndex, type) => {
       if (type === "E") {
@@ -142,8 +142,8 @@ document.addEventListener("keydown", (e) => {
       } else if (type === "F") {
         // 🐸 カエル → 新潟クイズ
         setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
-        startNiigataQuiz((score) => {
-          if (score >= 3) {
+        startNiigataQuiz((correct) => {
+          if (correct) {
             heal(1, setStatus);
             setStatus(`📝 クイズ正解！HP回復！`);
           } else {
