@@ -8,6 +8,13 @@ export function startEggGame(onFinish) {
   const old = document.getElementById("eggGame");
   if (old) old.remove();
 
+  // 画像パスを絶対パスまたはルートパスに修正
+  const imagePaths = {
+    background: "assets/images/tanshigame.png",
+    egg: "assets/images/tamago.png",
+    crushed: "assets/images/gucha.png"
+  };
+
   // コンテナ作成
   const container = document.createElement("div");
   container.id = "eggGame";
@@ -34,7 +41,7 @@ export function startEggGame(onFinish) {
     </div>
     <div id="egg-field"
          style="width:760px;height:400px;
-                background:url('./assets/images/tanshigame.png') center/cover no-repeat;
+                background:url('${imagePaths.background}') center/cover no-repeat;
                 position:relative;overflow:hidden;border:2px solid #900;">
     </div>
   `;
@@ -46,21 +53,82 @@ export function startEggGame(onFinish) {
   let time = 15;
   let timer;
 
+  // 画像の事前読み込み関数
+  function preloadImages() {
+    return Promise.all(
+      Object.values(imagePaths).map(src => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(src);
+          img.onerror = () => {
+            console.warn(`画像の読み込みに失敗: ${src}`);
+            resolve(src); // エラーでも続行
+          };
+          img.src = src;
+        });
+      })
+    );
+  }
+
   function spawnEgg() {
-    const egg = document.createElement("img");
-    egg.src = "./assets/images/tamago.png"; // 通常卵
+    const egg = document.createElement("div");
+    
+    // まず絵文字版を作成（確実に動作する）
+    egg.innerHTML = "🥚";
     egg.dataset.egg = "true";
     egg.style.position = "absolute";
     egg.style.left = Math.random() * (field.clientWidth - 32) + "px";
     egg.style.top = Math.random() * (field.clientHeight - 32) + "px";
     egg.style.width = "32px";
     egg.style.height = "32px";
+    egg.style.fontSize = "32px";
     egg.style.cursor = "pointer";
+    egg.style.userSelect = "none";
+    egg.style.textAlign = "center";
+    egg.style.lineHeight = "32px";
+    
+    // 画像版を試行
+    const imgEgg = document.createElement("img");
+    imgEgg.src = imagePaths.egg;
+    imgEgg.style.width = "32px";
+    imgEgg.style.height = "32px";
+    
+    imgEgg.onload = () => {
+      // 画像読み込み成功時は画像に置き換え
+      egg.innerHTML = "";
+      egg.appendChild(imgEgg);
+    };
+    
+    imgEgg.onerror = () => {
+      // 画像読み込み失敗時はそのまま絵文字を使用
+      console.warn("卵画像の読み込みに失敗:", imagePaths.egg);
+    };
 
     egg.onclick = () => {
       score++;
       document.getElementById("egg-score").textContent = score;
-      egg.src = "./assets/images/gucha.png"; // つぶれた画像
+      
+      // つぶれた表示
+      if (egg.querySelector('img')) {
+        // 画像版の場合
+        const crushedImg = document.createElement("img");
+        crushedImg.src = imagePaths.crushed;
+        crushedImg.style.width = "32px";
+        crushedImg.style.height = "32px";
+        
+        crushedImg.onload = () => {
+          egg.innerHTML = "";
+          egg.appendChild(crushedImg);
+        };
+        
+        crushedImg.onerror = () => {
+          egg.innerHTML = "💥";
+        };
+      } else {
+        // 絵文字版の場合
+        egg.innerHTML = "💥";
+      }
+      
       setTimeout(() => egg.remove(), 300);
     };
 
@@ -90,14 +158,18 @@ export function startEggGame(onFinish) {
     if (onFinish) onFinish(score);
   }
 
-  document.getElementById("egg-start").onclick = () => {
+  // スタートボタンの処理
+  document.getElementById("egg-start").onclick = async () => {
+    // 画像の事前読み込み
+    await preloadImages();
+    
     score = 0;
     time = 15;
     document.getElementById("egg-score").textContent = score;
     document.getElementById("egg-time").textContent = time;
 
     // 卵だけ削除（背景はCSSで残る）
-    const eggs = field.querySelectorAll("img[data-egg='true']");
+    const eggs = field.querySelectorAll("img[data-egg='true'], div[data-egg='true']");
     eggs.forEach(e => e.remove());
 
     clearInterval(timer);
