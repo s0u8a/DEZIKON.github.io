@@ -83,40 +83,34 @@
 
     /* クイズ画面 */
     #quizScreen {
-      display:none;
-      padding:20px;
-      background:#fff;
-      border:2px solid #333;
-      border-radius:12px;
-      max-width:600px;
-      margin:40px auto;
-      z-index:20;
-      position: relative;
-      text-align:center;
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background: #fff;
+      border: 2px solid #333;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 80%;
+      z-index: 20;
+      text-align: center;
+    }
+
+    #quizQuestion {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #000; /* 必ず黒文字で表示 */
     }
 
     #quizChoices button {
-      display:block;
-      margin:10px auto;
-      padding:8px 16px;
-      font-size:16px;
-      cursor:pointer;
-    }
-
-    #quizExplanation {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #333;
-    }
-
-    #backToGame {
-      margin-top: 20px;
+      display: block;
+      margin: 10px auto;
       padding: 8px 16px;
       font-size: 16px;
       cursor: pointer;
-      border: none;
-      border-radius: 6px;
-      background: #ddd;
     }
   </style>
 </head>
@@ -138,10 +132,8 @@
 
   <!-- クイズ画面 -->
   <div id="quizScreen">
-    <h2 id="quizQuestion"></h2>
+    <h2 id="quizQuestion">ここに問題が表示されます</h2>
     <div id="quizChoices"></div>
-    <div id="quizExplanation"></div>
-    <button id="backToGame" style="display:none;">ゲームに戻る</button>
   </div>
 
   <!-- 🎵 BGM -->
@@ -157,7 +149,7 @@
       document.getElementById("gameCanvas").style.display = "block";
       document.getElementById("messageBox").style.display = "block";
 
-      // BGM再生
+      // BGM 再生
       const bgm = document.getElementById("bgm");
       if (bgm) {
         bgm.volume = 0.5;
