@@ -4,7 +4,7 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js";
+import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズ
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -30,7 +30,7 @@ const images = {
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
 images.enemy.src = "./assets/images/enemy.png";
-images.enemy2.src = "./assets/images/kaeru.png";
+images.enemy2.src = "./assets/images/kaeru.png"; // 🐸 カエル画像
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
@@ -41,9 +41,9 @@ let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
 
-// ✅ 一時停止用
-let isPaused = false;
-let gameLoopId = null;
+// ✅ マップの内容をログに出して "F" があるか確認
+console.log("initEnemies前のマップ:");
+map.forEach(row => console.log(row.join("")));
 
 initPlayer(map);
 initEnemies(map);
@@ -71,6 +71,7 @@ function nextMap() {
     return;
   }
   map = maps[currentMapIndex];
+  console.log("次マップ読み込み:", currentMapIndex, map.map(row => row.join("")));
   initPlayer(map);
   initEnemies(map);
   resizeCanvas();
@@ -88,8 +89,6 @@ function onTile(x, y) {
 }
 
 document.addEventListener("keydown", (e) => {
-  if (isPaused) return; // 一時停止中は操作不可
-
   let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
   else if (e.key === "ArrowDown") ny++;
@@ -106,7 +105,7 @@ document.addEventListener("keydown", (e) => {
           setStatus(`🥚 卵つぶしスコア: ${score}`);
         }
       });
-      map[player.y][player.x] = "0"; 
+      map[player.y][player.x] = "0"; // 村人を消す
       nearAlly = false;
     }, 1500);
     return;
@@ -125,7 +124,7 @@ document.addEventListener("keydown", (e) => {
     onTile(nx, ny);
   }
 
-  // 🛑 敵の処理
+  // 敵処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
       if (currentMapIndex === 1) {
@@ -149,11 +148,6 @@ document.addEventListener("keydown", (e) => {
       }
     } else if (type === "frog") {
       setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
-
-      // 一時停止
-      isPaused = true;
-      cancelAnimationFrame(gameLoopId);
-
       startNiigataQuiz((correct) => {
         if (correct) {
           heal(1, setStatus);
@@ -162,13 +156,8 @@ document.addEventListener("keydown", (e) => {
           takeDamage(1, setStatus);
           setStatus("❌ 不正解！HP減少");
         }
-
         map[player.y][player.x] = "0";
         removeEnemy(enemyIndex);
-
-        // 再開
-        isPaused = false;
-        draw();
       });
     }
   });
@@ -177,8 +166,6 @@ document.addEventListener("keydown", (e) => {
 });
 
 function draw() {
-  if (isPaused) return; // 一時停止中は描画しない
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let y = 0; y < map.length; y++) {
@@ -192,7 +179,7 @@ function draw() {
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
-      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
+      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸
     }
   }
 
@@ -201,12 +188,13 @@ function draw() {
   drawLifeGauge(ctx, images.heart, tile, player);
 
   updatePlayer();
-  gameLoopId = requestAnimationFrame(draw);
+  requestAnimationFrame(draw);
 }
 
 window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
+  console.log("startGame後のマップ:", map.map(row => row.join("")));
   initPlayer(map);
   initEnemies(map);
   resizeCanvas();
