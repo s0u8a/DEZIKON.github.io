@@ -6,19 +6,16 @@ function getRandomQuiz() {
 }
 
 export function startNiigataQuiz(onFinish) {
-  console.log("✅ startNiigataQuiz 呼ばれた！");
   const quiz = getRandomQuiz();
+  console.log("✅ クイズ開始", quiz);
 
-  // ゲーム画面を隠してクイズ画面を表示
   document.getElementById("gameCanvas").style.display = "none";
   document.getElementById("messageBox").style.display = "none";
   const quizScreen = document.getElementById("quizScreen");
   quizScreen.style.display = "block";
 
-  // 問題文を表示
   document.getElementById("quizQuestion").textContent = quiz.question;
 
-  // 選択肢を表示
   const choicesDiv = document.getElementById("quizChoices");
   choicesDiv.innerHTML = "";
   quiz.choices.forEach((choice, idx) => {
@@ -27,19 +24,15 @@ export function startNiigataQuiz(onFinish) {
     btn.onclick = () => {
       const answer = ["A","B","C"][idx];
       let correct = false;
-
       if (answer === quiz.correctAnswer) {
         alert("⭕ 正解！ HP回復！");
         correct = true;
       } else {
         alert(`❌ 不正解！ 正解は ${quiz.correctAnswer}\n${quiz.explanation}`);
       }
-
-      // クイズ終了後にゲーム画面へ戻す
       quizScreen.style.display = "none";
       document.getElementById("gameCanvas").style.display = "block";
       document.getElementById("messageBox").style.display = "block";
-
       if (onFinish) onFinish(correct);
     };
     choicesDiv.appendChild(btn);
