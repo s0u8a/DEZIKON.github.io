@@ -36,7 +36,7 @@ export function startEggGame(onFinish) {
      style="
        width:100%;
        height:400px;
-       background:url('./assets/images/tanbo4.png') center/500% 500% no-repeat;
+       background:url('./assets/images/tanbo4.png') center/400% 400% no-repeat;
        position:relative;
        overflow:hidden;
        border:2px solid #900;">
