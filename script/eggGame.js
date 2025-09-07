@@ -32,10 +32,11 @@ export function startEggGame(onFinish) {
       <span>残り: <b id="egg-time">15</b>s</span>
       <button id="egg-start">スタート</button>
     </div>
-    <div id="egg-field"
-         style="width:760px;height:400px;
-                background:url('./assets/images/tanshi5.png') center/cover no-repeat;
-                position:relative;overflow:hidden;border:2px solid #900;">
+  
+    <div class="pond" id="fg-pond"
+         style="width:100%;height:400px;
+                background:url('./assets/images/tanbo.png') center/cover no-repeat;
+                position:relative;overflow:hidden;border:2px solid #004;">
     </div>
   `;
 
