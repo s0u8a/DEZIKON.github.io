@@ -1,59 +1,62 @@
-import { invasiveSpeciesQuiz } from "./quizdata.js"; // ←拡張子必須
+import { invasiveSpeciesQuiz } from "./quizdata.js";
 
-// ランダムに1問取得
+// ランダムで1問取得
 function getRandomQuiz() {
   const randomIndex = Math.floor(Math.random() * invasiveSpeciesQuiz.length);
   return invasiveSpeciesQuiz[randomIndex];
 }
 
-// クイズ開始処理
+// クイズ画面を表示
 export function startNiigataQuiz(onFinish) {
   const quiz = getRandomQuiz();
 
-  // デバッグログ
-  console.log("出題するクイズ:", quiz);
-  console.log("問題文:", quiz?.question);
-  console.log("選択肢:", quiz?.choices);
-
-  // ゲーム画面を非表示にしてクイズ画面を表示
+  // ゲーム画面を隠してクイズ画面を表示
   document.getElementById("gameCanvas").style.display = "none";
   document.getElementById("messageBox").style.display = "none";
-
   const quizScreen = document.getElementById("quizScreen");
   quizScreen.style.display = "block";
 
   // 問題文を表示
-  const qEl = document.getElementById("quizQuestion");
-  if (quiz?.question) {
-    qEl.textContent = quiz.question;
-  } else {
-    qEl.textContent = "⚠ 問題文が取得できませんでした";
-    console.error("quiz.question が空です:", quiz);
-  }
+  document.getElementById("quizQuestion").textContent = quiz.question;
 
-  // 選択肢をボタンで表示
+  // 選択肢をボタンとして表示
   const choicesDiv = document.getElementById("quizChoices");
   choicesDiv.innerHTML = "";
+  
+  // 解説エリアを追加（毎回リセット）
+  let explanationDiv = document.getElementById("quizExplanation");
+  if (!explanationDiv) {
+    explanationDiv = document.createElement("div");
+    explanationDiv.id = "quizExplanation";
+    explanationDiv.style.marginTop = "20px";
+    explanationDiv.style.fontWeight = "bold";
+    quizScreen.appendChild(explanationDiv);
+  }
+  explanationDiv.textContent = "";
+
   quiz.choices.forEach((choice, idx) => {
     const btn = document.createElement("button");
     btn.textContent = choice;
     btn.onclick = () => {
-      const answer = ["A", "B", "C"][idx];
+      const answer = ["A","B","C"][idx];
       let correct = false;
 
       if (answer === quiz.correctAnswer) {
-        alert("⭕ 正解！ HP回復！");
+        explanationDiv.textContent = `⭕ 正解！ ${quiz.explanation}`;
+        explanationDiv.style.color = "green";
         correct = true;
       } else {
-        alert(`❌ 不正解！ 正解は ${quiz.correctAnswer}\n${quiz.explanation}`);
+        explanationDiv.textContent = `❌ 不正解！ 正解は ${quiz.correctAnswer} : ${quiz.explanation}`;
+        explanationDiv.style.color = "red";
       }
 
-      // クイズ終了 → ゲーム画面へ戻す
-      quizScreen.style.display = "none";
-      document.getElementById("gameCanvas").style.display = "block";
-      document.getElementById("messageBox").style.display = "block";
-
-      if (onFinish) onFinish(correct);
+      // 数秒後にゲーム画面へ戻す
+      setTimeout(() => {
+        quizScreen.style.display = "none";
+        document.getElementById("gameCanvas").style.display = "block";
+        document.getElementById("messageBox").style.display = "block";
+        if (onFinish) onFinish(correct);
+      }, 3000); // 3秒後に戻る
     };
     choicesDiv.appendChild(btn);
   });
