@@ -22,7 +22,7 @@ export function startNiigataQuiz(onFinish) {
   // 選択肢をボタンとして表示
   const choicesDiv = document.getElementById("quizChoices");
   choicesDiv.innerHTML = "";
-  
+
   // 解説エリアを追加（毎回リセット）
   let explanationDiv = document.getElementById("quizExplanation");
   if (!explanationDiv) {
@@ -33,6 +33,17 @@ export function startNiigataQuiz(onFinish) {
     quizScreen.appendChild(explanationDiv);
   }
   explanationDiv.textContent = "";
+
+  // 戻るボタンを準備（最初は非表示）
+  let backBtn = document.getElementById("quizBackBtn");
+  if (!backBtn) {
+    backBtn = document.createElement("button");
+    backBtn.id = "quizBackBtn";
+    backBtn.textContent = "⬅ ゲームに戻る";
+    backBtn.style.display = "none";
+    backBtn.style.marginTop = "20px";
+    quizScreen.appendChild(backBtn);
+  }
 
   quiz.choices.forEach((choice, idx) => {
     const btn = document.createElement("button");
@@ -50,13 +61,15 @@ export function startNiigataQuiz(onFinish) {
         explanationDiv.style.color = "red";
       }
 
-      // 数秒後にゲーム画面へ戻す
-      setTimeout(() => {
+      // 戻るボタンを表示
+      backBtn.style.display = "block";
+
+      backBtn.onclick = () => {
         quizScreen.style.display = "none";
         document.getElementById("gameCanvas").style.display = "block";
         document.getElementById("messageBox").style.display = "block";
         if (onFinish) onFinish(correct);
-      }, 3000); // 3秒後に戻る
+      };
     };
     choicesDiv.appendChild(btn);
   });
