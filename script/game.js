@@ -41,12 +41,9 @@ let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
 
-// ✅ マップの内容をログに出して "F" があるか確認
-console.log("initEnemies前のマップ:");
-map.forEach(row => console.log(row.join("")));
-
-initPlayer(map);
-initEnemies(map);
+// ✅ 最初は initEnemies を呼ばない（startGame 内で呼ぶから）
+// initPlayer(map);
+// initEnemies(map);
 
 const dpr = window.devicePixelRatio || 1;
 function resizeCanvas() {
@@ -196,7 +193,7 @@ window.startGame = function () {
   map = maps[currentMapIndex];
   console.log("startGame後のマップ:", map.map(row => row.join("")));
   initPlayer(map);
-  initEnemies(map);
+  initEnemies(map); // ← ここで1回だけ呼ぶ
   resizeCanvas();
   setStatus("✅ ゲーム開始");
   draw();
