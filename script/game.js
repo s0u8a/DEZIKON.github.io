@@ -4,17 +4,20 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js"; // 新潟クイズ
-
+import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズ
+ 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
-
+ 
 const statusEl = document.getElementById("messageBox");
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
   console.log(msg);
 }
+
+// 🎵 BGM要素取得
+const bgm = document.getElementById("bgm");
 
 const images = {
   floor: new Image(),
@@ -36,14 +39,11 @@ images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
 images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
-
+ 
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
-
-initPlayer(map);
-initEnemies(map);
-
+ 
 const dpr = window.devicePixelRatio || 1;
 function resizeCanvas() {
   canvas.width = map[0].length * tile * dpr;
@@ -54,25 +54,27 @@ function resizeCanvas() {
   ctx.scale(dpr, dpr);
 }
 resizeCanvas();
-
+ 
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   return map[y][x] !== "#";
 }
-
+ 
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
     setStatus("🎉 全クリア！！");
+    if (bgm) bgm.pause(); // 🎵 全クリア時に停止
     return;
   }
   map = maps[currentMapIndex];
+  console.log("次マップ読み込み:", currentMapIndex, map.map(row => row.join("")));
   initPlayer(map);
   initEnemies(map);
   resizeCanvas();
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
 }
-
+ 
 function onTile(x, y) {
   const cell = map[y][x];
   if (cell === "A") {
@@ -82,7 +84,7 @@ function onTile(x, y) {
     nearAlly = false;
   }
 }
-
+ 
 document.addEventListener("keydown", (e) => {
   let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
@@ -90,7 +92,6 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
-    // 🥚 村人イベント → 卵ゲーム
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
@@ -106,24 +107,23 @@ document.addEventListener("keydown", (e) => {
     }, 1500);
     return;
   } else return;
-
+ 
   if (walkable(nx, ny)) {
     player.x = nx;
     player.y = ny;
-
+ 
     if (checkGoal(map, player.x, player.y)) {
       setStatus("🏁 ゴール！");
       nextMap();
       return;
     }
-
+ 
     onTile(nx, ny);
   }
-
-  // 🛑 敵の処理（全マップ共通）
+ 
+  // 敵処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
-      // 🎣 通常敵 → 釣りゲームはマップ2だけ
       if (currentMapIndex === 1) {
         takeDamage(amt, setStatus);
         startFishingGame((score) => {
@@ -136,19 +136,14 @@ document.addEventListener("keydown", (e) => {
           } else {
             setStatus(`🎣 釣果: ブラックバス ${score}匹`);
           }
-          map[player.y][player.x] = "0";
-          removeEnemy(enemyIndex);
+          removeEnemy(enemyIndex); // ✅ 終了後に敵を消す
         });
       } else {
-        // 他のマップでは普通にダメージ
         takeDamage(amt, setStatus);
-        removeEnemy(enemyIndex);
+        removeEnemy(enemyIndex); // ✅ すぐ消す
       }
     } else if (type === "frog") {
-      // 🐸 カエル → 全マップでクイズ
       setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
-
-      // 👉 クイズ開始
       startNiigataQuiz((correct) => {
         if (correct) {
           heal(1, setStatus);
@@ -157,19 +152,20 @@ document.addEventListener("keydown", (e) => {
           takeDamage(1, setStatus);
           setStatus("❌ 不正解！HP減少");
         }
-
-        map[player.y][player.x] = "0";
-        removeEnemy(enemyIndex);
+        removeEnemy(enemyIndex); // ✅ 終了後に敵を消す
       });
     }
   });
-
-  if (checkGameOver(player, setStatus)) return;
+ 
+  if (checkGameOver(player, setStatus)) {
+    if (bgm) bgm.pause(); // 🎵 ゲームオーバーで停止
+    return;
+  }
 });
-
+ 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+ 
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile;
@@ -180,30 +176,29 @@ function draw() {
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
-      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);  // 通常敵
-      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸 カエル敵
+      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
+      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸
     }
   }
-
+ 
   drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
-
+ 
   updatePlayer();
   requestAnimationFrame(draw);
 }
-
-// ゲーム開始
+ 
 window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
+  console.log("startGame後のマップ:", map.map(row => row.join("")));
   initPlayer(map);
-  initEnemies(map);
+  initEnemies(map); 
   resizeCanvas();
   setStatus("✅ ゲーム開始");
 
-  // 🎵 BGM再生
-  const bgm = document.getElementById("bgm");
+  // 🎵 BGM再生開始
   if (bgm) {
     bgm.volume = 0.5;
     bgm.play().catch(err => console.log("BGM再生エラー:", err));
