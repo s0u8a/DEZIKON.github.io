@@ -14,7 +14,11 @@ export function initEnemies(GRID) {
       }
     }
   }
-  console.log("敵生成:", enemies);
+  // 👇 わかりやすいログ
+  console.log(
+    "敵生成:",
+    enemies.map(e => ({ x: e.x, y: e.y, type: e.type }))
+  );
 }
 
 export function updateEnemies(walkable, player, onHit) {
