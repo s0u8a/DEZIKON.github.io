@@ -119,6 +119,13 @@ document.addEventListener("keydown", (e) => {
     }
  
     onTile(nx, ny);
+
+    // 🆕 アイテム取得処理
+    if (map[player.y][player.x] === "I") {
+      heal(1, setStatus); // HPを1回復
+      setStatus("🍙 アイテムを取った！HP回復！");
+      map[player.y][player.x] = "0"; // アイテムを消す
+    }
   }
  
   // 敵処理
