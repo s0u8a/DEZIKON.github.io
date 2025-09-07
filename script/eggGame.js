@@ -32,16 +32,15 @@ export function startEggGame(onFinish) {
       <span style="margin-left:15px;">残り: <b id="egg-time">15</b>s</span>
       <button id="egg-start" style="margin-left:15px;">スタート</button>
     </div>
-<div id="egg-field"
-     style="
-       width:100%;
-       height:400px;
-       background:url('./assets/images/tanbo4.png') center/200% 200% no-repeat;
-       position:relative;
-       overflow:hidden;
-       border:2px solid #900;">
-</div>
-
+    <div id="egg-field"
+         style="
+           width:100%;
+           height:400px;
+           background:url('./assets/images/tanbo4.png') center/200% 200% no-repeat;
+           position:relative;
+           overflow:hidden;
+           border:2px solid #900;">
+    </div>
   `;
 
   document.body.appendChild(container);
@@ -84,17 +83,53 @@ export function startEggGame(onFinish) {
   function endGame() {
     clearInterval(timer);
 
-    alert(`終了！つぶした数: ${score}`);
+    // 既存のモーダルがあれば削除
+    const oldModal = document.getElementById("egg-modal");
+    if (oldModal) oldModal.remove();
 
-    // eggGame を必ず削除
-    const old = document.getElementById("eggGame");
-    if (old) old.remove();
+    // モーダル生成
+    const modal = document.createElement("div");
+    modal.id = "egg-modal";
+    modal.style.position = "fixed";
+    modal.style.top = "50%";
+    modal.style.left = "50%";
+    modal.style.transform = "translate(-50%, -50%)";
+    modal.style.background = "#fff";
+    modal.style.padding = "20px";
+    modal.style.borderRadius = "10px";
+    modal.style.width = "600px";
+    modal.style.color = "#111";
+    modal.style.fontSize = "1.1em";
+    modal.style.lineHeight = "1.8";
+    modal.style.textAlign = "center";
+    modal.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
+    modal.style.zIndex = "2000";
 
-    // RPG画面を復帰
-    showRPG();
+    modal.innerHTML = `
+      <h2 style="color:#600; margin-bottom:10px;">🌾 ジャンボタニシと田んぼの環境</h2>
+      <p style="margin-bottom:12px;">
+        ジャンボタニシ（スクミリンゴガイ）はもともと<strong>食用として南米から持ち込まれた外来種</strong>ですが、<br>
+        養殖場からの脱走や、飼育放棄されたものが野生化して日本各地の田んぼに広がりました。<br><br>
+        稲を食べて成長し、田植え後の苗に大きな被害を与えるだけでなく、<br>
+        田んぼのあちこちに<strong>気色悪いピンク色の卵</strong>を植え付けて爆発的に繁殖します。<br>
+        そのため、農業被害と生態系への影響が問題となっており、<br>
+        卵や個体を見つけたら駆除することが重要です。
+      </p>
+      <p style="margin-top:10px; font-weight:bold; font-size:1.2em; color:#333;">
+        🎮 あなたのスコア: ${score}
+      </p>
+      <button id="egg-close" style="margin-top:15px; padding:8px 20px; font-size:1em;">閉じる</button>
+    `;
 
-    // コールバック呼び出し
-    if (onFinish) onFinish(score);
+    document.body.appendChild(modal);
+
+    // 閉じるボタン処理
+    document.getElementById("egg-close").onclick = () => {
+      modal.remove();
+      document.body.removeChild(container);
+      showRPG();
+      if (onFinish) onFinish(score);
+    };
   }
 
   document.getElementById("egg-start").onclick = () => {
