@@ -4,7 +4,7 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズ
+import { startNiigataQuiz } from "./niigataquiz.js"; // 新潟クイズ
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -41,9 +41,8 @@ let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
 
-// ✅ 最初は initEnemies を呼ばない（startGame 内で呼ぶから）
-// initPlayer(map);
-// initEnemies(map);
+initPlayer(map);
+initEnemies(map);
 
 const dpr = window.devicePixelRatio || 1;
 function resizeCanvas() {
@@ -68,7 +67,6 @@ function nextMap() {
     return;
   }
   map = maps[currentMapIndex];
-  console.log("次マップ読み込み:", currentMapIndex, map.map(row => row.join("")));
   initPlayer(map);
   initEnemies(map);
   resizeCanvas();
@@ -92,6 +90,7 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
+    // 🥚 村人イベント → 卵ゲーム
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
@@ -121,9 +120,10 @@ document.addEventListener("keydown", (e) => {
     onTile(nx, ny);
   }
 
-  // 敵処理
+  // 🛑 敵の処理（全マップ共通）
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
+      // 🎣 通常敵 → 釣りゲームはマップ2だけ
       if (currentMapIndex === 1) {
         takeDamage(amt, setStatus);
         startFishingGame((score) => {
@@ -140,11 +140,15 @@ document.addEventListener("keydown", (e) => {
           removeEnemy(enemyIndex);
         });
       } else {
+        // 他のマップでは普通にダメージ
         takeDamage(amt, setStatus);
         removeEnemy(enemyIndex);
       }
     } else if (type === "frog") {
+      // 🐸 カエル → 全マップでクイズ
       setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
+
+      // 👉 クイズ開始
       startNiigataQuiz((correct) => {
         if (correct) {
           heal(1, setStatus);
@@ -153,6 +157,7 @@ document.addEventListener("keydown", (e) => {
           takeDamage(1, setStatus);
           setStatus("❌ 不正解！HP減少");
         }
+
         map[player.y][player.x] = "0";
         removeEnemy(enemyIndex);
       });
@@ -175,8 +180,8 @@ function draw() {
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
-      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
-      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸
+      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);  // 通常敵
+      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸 カエル敵
     }
   }
 
@@ -188,13 +193,21 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
+// ゲーム開始
 window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
-  console.log("startGame後のマップ:", map.map(row => row.join("")));
   initPlayer(map);
-  initEnemies(map); // ← ここで1回だけ呼ぶ
+  initEnemies(map);
   resizeCanvas();
   setStatus("✅ ゲーム開始");
+
+  // 🎵 BGM再生
+  const bgm = document.getElementById("bgm");
+  if (bgm) {
+    bgm.volume = 0.5;
+    bgm.play().catch(err => console.log("BGM再生エラー:", err));
+  }
+
   draw();
 };
