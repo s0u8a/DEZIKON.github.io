@@ -32,15 +32,16 @@ export function startEggGame(onFinish) {
       <span style="margin-left:15px;">残り: <b id="egg-time">15</b>s</span>
       <button id="egg-start" style="margin-left:15px;">スタート</button>
     </div>
-    <div id="egg-field"
-         style="
-           width:100%;
-           height:400px;
-           background:url('./assets/images/tanbo4.png') center/cover no-repeat;
-           position:relative;
-           overflow:hidden;
-           border:2px solid #900;">
-    </div>
+<div id="egg-field"
+     style="
+       width:100%;
+       height:400px;
+       background:url('./assets/images/tanbo4.png') center/100% 100% no-repeat;
+       position:relative;
+       overflow:hidden;
+       border:2px solid #900;">
+</div>
+
   `;
 
   document.body.appendChild(container);
