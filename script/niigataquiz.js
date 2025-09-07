@@ -1,34 +1,29 @@
-import { invasiveSpeciesQuiz } from "./quizdata.js";
+import { invasiveSpeciesQuiz } from "./quizdata.js"; // ←拡張子必須
 
-// ランダムで1問取得
 function getRandomQuiz() {
   const randomIndex = Math.floor(Math.random() * invasiveSpeciesQuiz.length);
   return invasiveSpeciesQuiz[randomIndex];
 }
 
-// クイズ開始処理
 export function startNiigataQuiz(onFinish) {
   const quiz = getRandomQuiz();
-  console.log("出題するクイズ:", quiz); // デバッグ用ログ
+  console.log("選ばれたクイズ:", quiz);  // デバッグ
+  console.log("問題文:", quiz?.question); // デバッグ
 
-  // ゲーム画面を隠してクイズ画面を表示
   document.getElementById("gameCanvas").style.display = "none";
   document.getElementById("messageBox").style.display = "none";
 
   const quizScreen = document.getElementById("quizScreen");
   quizScreen.style.display = "block";
 
-  // ✅ 問題文を表示（なければ警告テキストを入れる）
   const qEl = document.getElementById("quizQuestion");
-  qEl.textContent = quiz.question ?? "⚠ 問題文が読み込めませんでした";
+  qEl.textContent = quiz?.question ?? "⚠ 問題文が取得できませんでした";
 
-  // 選択肢を表示
   const choicesDiv = document.getElementById("quizChoices");
   choicesDiv.innerHTML = "";
   quiz.choices.forEach((choice, idx) => {
     const btn = document.createElement("button");
     btn.textContent = choice;
-
     btn.onclick = () => {
       const answer = ["A", "B", "C"][idx];
       let correct = false;
@@ -40,14 +35,12 @@ export function startNiigataQuiz(onFinish) {
         alert(`❌ 不正解！ 正解は ${quiz.correctAnswer}\n${quiz.explanation}`);
       }
 
-      // クイズ終了後にゲームへ戻す
       quizScreen.style.display = "none";
       document.getElementById("gameCanvas").style.display = "block";
       document.getElementById("messageBox").style.display = "block";
 
       if (onFinish) onFinish(correct);
     };
-
     choicesDiv.appendChild(btn);
   });
 }
