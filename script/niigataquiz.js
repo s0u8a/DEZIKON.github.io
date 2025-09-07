@@ -1,76 +1,64 @@
 import { invasiveSpeciesQuiz } from "./quizdata.js";
 
-// ランダムで1問取得
-function getRandomQuiz() {
-  const randomIndex = Math.floor(Math.random() * invasiveSpeciesQuiz.length);
-  return invasiveSpeciesQuiz[randomIndex];
-}
+let currentQuiz = null;
 
-// クイズ画面を表示
-export function startNiigataQuiz(onFinish) {
-  const quiz = getRandomQuiz();
-
-  // ゲーム画面を隠してクイズ画面を表示
-  document.getElementById("gameCanvas").style.display = "none";
-  document.getElementById("messageBox").style.display = "none";
+export function startNiigataQuiz(onEnd) {
   const quizScreen = document.getElementById("quizScreen");
+  const quizQ = document.getElementById("quizQuestion");
+  const quizChoices = document.getElementById("quizChoices");
+
   quizScreen.style.display = "block";
+  quizChoices.innerHTML = "";
 
-  // 問題文を表示
-  document.getElementById("quizQuestion").textContent = quiz.question;
+  // ランダムで問題を選ぶ
+  currentQuiz = invasiveSpeciesQuiz[Math.floor(Math.random() * invasiveSpeciesQuiz.length)];
+  console.log("出題するクイズ:", currentQuiz);
 
-  // 選択肢をボタンとして表示
-  const choicesDiv = document.getElementById("quizChoices");
-  choicesDiv.innerHTML = "";
+  // ✅ 問題文を表示
+  quizQ.textContent = currentQuiz.question;
 
-  // 解説エリアを追加（毎回リセット）
-  let explanationDiv = document.getElementById("quizExplanation");
-  if (!explanationDiv) {
-    explanationDiv = document.createElement("div");
-    explanationDiv.id = "quizExplanation";
-    explanationDiv.style.marginTop = "20px";
-    explanationDiv.style.fontWeight = "bold";
-    quizScreen.appendChild(explanationDiv);
-  }
-  explanationDiv.textContent = "";
-
-  // 戻るボタンを準備（最初は非表示）
-  let backBtn = document.getElementById("quizBackBtn");
-  if (!backBtn) {
-    backBtn = document.createElement("button");
-    backBtn.id = "quizBackBtn";
-    backBtn.textContent = "⬅ ゲームに戻る";
-    backBtn.style.display = "none";
-    backBtn.style.marginTop = "20px";
-    quizScreen.appendChild(backBtn);
-  }
-
-  quiz.choices.forEach((choice, idx) => {
+  // 選択肢を生成
+  currentQuiz.choices.forEach((choice, i) => {
     const btn = document.createElement("button");
     btn.textContent = choice;
     btn.onclick = () => {
-      const answer = ["A","B","C"][idx];
-      let correct = false;
-
-      if (answer === quiz.correctAnswer) {
-        explanationDiv.textContent = `⭕ 正解！ ${quiz.explanation}`;
-        explanationDiv.style.color = "green";
-        correct = true;
-      } else {
-        explanationDiv.textContent = `❌ 不正解！ 正解は ${quiz.correctAnswer} : ${quiz.explanation}`;
-        explanationDiv.style.color = "red";
+      let explanationEl = document.getElementById("quizExplanation");
+      if (!explanationEl) {
+        explanationEl = document.createElement("p");
+        explanationEl.id = "quizExplanation";
+        explanationEl.style.marginTop = "15px";
+        explanationEl.style.color = "red";
+        quizScreen.appendChild(explanationEl);
       }
 
-      // 戻るボタンを表示
-      backBtn.style.display = "block";
+      if (choice.startsWith(currentQuiz.correctAnswer)) {
+        explanationEl.innerHTML = `⭕ 正解！ ${currentQuiz.explanation}`;
+        onEnd(true);
+      } else {
+        explanationEl.innerHTML = `❌ 不正解！ 正解は ${currentQuiz.correctAnswer}: ${currentQuiz.explanation}`;
+        onEnd(false);
+      }
+
+      // ✅ 戻るボタン
+      let backBtn = document.getElementById("backToGame");
+      if (!backBtn) {
+        backBtn = document.createElement("button");
+        backBtn.id = "backToGame";
+        backBtn.textContent = "⬅ ゲームに戻る";
+        backBtn.style.display = "block";
+        backBtn.style.marginTop = "15px";
+        quizScreen.appendChild(backBtn);
+      }
 
       backBtn.onclick = () => {
         quizScreen.style.display = "none";
-        document.getElementById("gameCanvas").style.display = "block";
-        document.getElementById("messageBox").style.display = "block";
-        if (onFinish) onFinish(correct);
+        quizQ.textContent = "";      // ✅ 問題文をクリア
+        quizChoices.innerHTML = "";  // ✅ 選択肢をクリア
+        if (explanationEl) explanationEl.remove(); // ✅ 解説を削除
+        backBtn.remove();            // ✅ 戻るボタンも削除
+        currentQuiz = null;          // ✅ 状態リセット
       };
     };
-    choicesDiv.appendChild(btn);
+    quizChoices.appendChild(btn);
   });
 }
