@@ -232,4 +232,11 @@ window.startGame = function () {
   resizeCanvas();
   setStatus("✅ ゲーム開始");
 
-  // 🎵
+  // 🎵 BGM再生開始
+  if (bgm) {
+    bgm.volume = 0.5;
+    bgm.play().catch(err => console.log("BGM再生エラー:", err));
+  }
+
+  draw();
+};
