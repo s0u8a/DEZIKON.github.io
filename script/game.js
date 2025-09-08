@@ -31,7 +31,7 @@ const images = {
   goalEntrance: new Image(), // 🆕 ゴール地点判定 (O)
   entrance: new Image(),     // 🆕 入口判定 (N)
   mahouzin: new Image(),     // 🆕 魔法陣 (M)
-  floorSpecial: new Image(), // 🆕 地面判定 (X) ← tikadoukuyuka.png を X に割当
+  floorSpecial: new Image(), // 🆕 特殊床 (X)
   pl: new Image(),
   heart: new Image(),
   bridge: new Image(), // 🆕 橋 (B)
@@ -48,7 +48,7 @@ images.goal.src = "./assets/images/goal.png";
 images.goalEntrance.src = "./assets/images/koudouiriguti.png"; // O
 images.entrance.src = "./assets/images/kintin.png";             // N
 images.mahouzin.src = "./assets/images/mahouzin.png";           // M
-images.floorSpecial.src = "./assets/images/tikadoukuyuka.png"; // X (特殊床)
+images.floorSpecial.src = "./assets/images/tikadoukuyuka.png"; // X
 images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
 images.bridge.src = "./assets/images/hasihasii.png"; // B
@@ -73,10 +73,10 @@ resizeCanvas();
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
-  // "#" → 壁（水）NG
+  // "#" → 水 NG
   // "T" → 木 NG
-  // "W" → 壁判定 NG
-  // X（特殊床）、S（スタート）、M（魔法陣）などは歩ける
+  // "W" → 壁 NG
+  // "X", "M", "S" などは通れる
   return cell !== "#" && cell !== "T" && cell !== "W";
 }
 
@@ -140,7 +140,7 @@ document.addEventListener("keydown", (e) => {
 
     onTile(nx, ny);
 
-    // アイテム取得処理
+    // アイテム取得
     if (map[player.y][player.x] === "I") {
       heal(1, setStatus);
       setStatus("🍙 アイテムを取った！HP回復！");
@@ -190,6 +190,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// 🔹 描画処理
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -199,12 +200,16 @@ function draw() {
       const dy = y * tile;
       const cell = map[y][x];
 
-      // 基本地面（従来の床を下地として描画）
-      ctx.drawImage(images.floor, dx, dy, tile, tile);
+      // X のときだけ特殊床、それ以外は普通の床を下地にする
+      if (cell === "X") {
+        ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
+      } else {
+        ctx.drawImage(images.floor, dx, dy, tile, tile);
+      }
 
-      // 新タイル描画
-      if (cell === "#" ) ctx.drawImage(images.wall, dx, dy, tile, tile);
-      if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile); // 壁判定（新）
+      // 上物の描画
+      if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
+      if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
@@ -212,9 +217,7 @@ function draw() {
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
-      // S はスタートマーカー（プレイヤー初期位置）なので描画は床のままにするかプレイヤーが上に乗る想定
-      if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // ← ここが変更: X = tikadoukuyuka.png
-      if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);     // 魔法陣
+      if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
       if (cell === "N") ctx.drawImage(images.entrance, dx, dy, tile, tile);
       if (cell === "O") ctx.drawImage(images.goalEntrance, dx, dy, tile, tile);
     }
