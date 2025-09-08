@@ -39,8 +39,8 @@ const images = {
   heart: new Image(),
   bridge: new Image(),
   tree: new Image(),
-  clear: new Image(),   // クリア画面
-  over: new Image()     // ゲームオーバー画面
+  clear: new Image(),
+  over: new Image()
 };
 
 // 🖼 画像の読み込み
@@ -99,8 +99,9 @@ function nextMap() {
     return;
   }
   map = maps[currentMapIndex].map(row => [...row]);
-  initPlayer(map);
-  player.hp = player.maxHp; // HP回復
+  const newPlayer = initPlayer(map);
+  Object.assign(player, newPlayer); // 古い player オブジェクトに反映
+  player.hp = player.maxHp;
   initEnemies(map);
   resizeCanvas();
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
@@ -191,8 +192,9 @@ document.addEventListener("keydown", (e) => {
 function restartGame() {
   currentMapIndex = 0;
   map = maps[currentMapIndex].map(row => [...row]);
-  initPlayer(map);
-  player.hp = player.maxHp; // HP満タン
+  const newPlayer = initPlayer(map);
+  Object.assign(player, newPlayer);
+  player.hp = player.maxHp;
   initEnemies(map);
   resizeCanvas();
   setStatus("🔄 ゲーム再スタート！");
@@ -285,8 +287,9 @@ canvas.addEventListener("click", (e) => {
 window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex].map(row => [...row]);
-  initPlayer(map);
-  player.hp = player.maxHp; // HP満タン
+  const newPlayer = initPlayer(map);
+  Object.assign(player, newPlayer);
+  player.hp = player.maxHp;
   initEnemies(map); 
   resizeCanvas();
   setStatus("✅ ゲーム開始");
