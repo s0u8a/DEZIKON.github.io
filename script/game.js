@@ -203,10 +203,13 @@ function draw() {
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
 
-      // 🔹 ゴール描画（第四マップだけ魔法陣）
+      // 🔹 ゴール描画（第4マップだけ魔法陣）
       if (cell === "G") {
-        if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
-        else ctx.drawImage(images.goal, dx, dy, tile, tile);
+        if (currentMapIndex === 3) {
+          ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
+        } else {
+          ctx.drawImage(images.goal, dx, dy, tile, tile);
+        }
       }
 
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
