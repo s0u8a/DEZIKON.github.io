@@ -8,16 +8,20 @@ export const player = {
 // アニメーションフレーム用カウンタ
 let lifeAnimFrame = 0;
 
+// 🆕 return を追加 → game.js 側で player を受け取れるように
 export function initPlayer(GRID) {
   for (let y = 0; y < GRID.length; y++) {
     for (let x = 0; x < GRID[0].length; x++) {
       if (GRID[y][x] === 'S') {
-        player.x = x; player.y = y;
+        player.x = x; 
+        player.y = y;
         GRID[y][x] = '0';
-        return;
+        // ✅ player を返すように変更
+        return player;
       }
     }
   }
+  return player; // 万が一スタート地点が見つからなかった時
 }
 
 export function takeDamage(amount = 1, setStatus) {
