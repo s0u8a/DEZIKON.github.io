@@ -44,28 +44,28 @@ const images = {
 };
 
 // 🖼 画像の読み込み
-images.floor.src = "./assets/images/tanbo3.png";//床
-images.wall.src = "./assets/images/mizu_big.png";//水
-images.wallSpecial.src = "./assets/images/isikabe.png";//石壁
-images.enemy.src = "./assets/images/enemy.png";//エネミー
-images.enemy2.src = "./assets/images/kaeru.png";//問題
-images.item.src = "./assets/images/komebukuro.png";//アイテム
-images.ally.src = "./assets/images/murabitopng.png";//村人
-images.goal.src = "./assets/images/kakasi2.png";//ゴール
-images.goalEntrance.src = "./assets/images/koudouiriguti.png";//入口
-images.entrance.src = "./assets/images/kintin.png";//壁
-images.mahouzin.src = "./assets/images/mahouzin.png";//第四マップゴール用
-images.floorSpecial.src = "./assets/images/tikakoudouyuka.png"; // 地下
-images.pl.src = "./assets/images/noumin.png";//主人公
-images.heart.src = "./assets/images/ha-to.png";//ハート
-images.bridge.src = "./assets/images/hasihasii.png";//橋
-images.tree.src = "./assets/images/kinokabe.png";//木
-images.clear.src = "./assets/images/clear.png";//クリア画面
-images.over.src = "./assets/images/over.png";//ゲームオーバー画面
+images.floor.src = "./assets/images/tanbo3.png";
+images.wall.src = "./assets/images/mizu_big.png";
+images.wallSpecial.src = "./assets/images/isikabe.png";
+images.enemy.src = "./assets/images/enemy.png";
+images.enemy2.src = "./assets/images/kaeru.png";
+images.item.src = "./assets/images/komebukuro.png";
+images.ally.src = "./assets/images/murabitopng.png";
+images.goal.src = "./assets/images/kakasi2.png";
+images.goalEntrance.src = "./assets/images/koudouiriguti.png";
+images.entrance.src = "./assets/images/kintin.png";
+images.mahouzin.src = "./assets/images/mahouzin.png";
+images.floorSpecial.src = "./assets/images/tikakoudouyuka.png";
+images.pl.src = "./assets/images/noumin.png";
+images.heart.src = "./assets/images/ha-to.png";
+images.bridge.src = "./assets/images/hasihasii.png";
+images.tree.src = "./assets/images/kinokabe.png";
+images.clear.src = "./assets/images/clear.png";
+images.over.src = "./assets/images/over.png";
 
 // 🌍 マップ状態
 let currentMapIndex = 0;
-let map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピーで保持
+let map = maps[currentMapIndex].map(row => [...row]);
 let nearAlly = false;
 let gameCleared = false;
 let gameOver = false;
@@ -98,9 +98,9 @@ function nextMap() {
     gameCleared = true;
     return;
   }
-  map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピーで初期化
+  map = maps[currentMapIndex].map(row => [...row]);
   initPlayer(map);
-  if (player.maxHp) player.hp = player.maxHp;
+  player.hp = player.maxHp; // HP回復
   initEnemies(map);
   resizeCanvas();
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
@@ -190,9 +190,9 @@ document.addEventListener("keydown", (e) => {
 // ▶ リスタート関数
 function restartGame() {
   currentMapIndex = 0;
-  map = maps[currentMapIndex].map(row => [...row]); // 🆕 マップをリセット
+  map = maps[currentMapIndex].map(row => [...row]);
   initPlayer(map);
-  if (player.maxHp) player.hp = player.maxHp; // 🆕 HP満タン
+  player.hp = player.maxHp; // HP満タン
   initEnemies(map);
   resizeCanvas();
   setStatus("🔄 ゲーム再スタート！");
@@ -284,9 +284,9 @@ canvas.addEventListener("click", (e) => {
 // ▶ ゲーム開始
 window.startGame = function () {
   currentMapIndex = 0;
-  map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピー
+  map = maps[currentMapIndex].map(row => [...row]);
   initPlayer(map);
-  if (player.maxHp) player.hp = player.maxHp;
+  player.hp = player.maxHp; // HP満タン
   initEnemies(map); 
   resizeCanvas();
   setStatus("✅ ゲーム開始");
