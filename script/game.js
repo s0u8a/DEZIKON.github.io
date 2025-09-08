@@ -39,38 +39,38 @@ const images = {
   heart: new Image(),
   bridge: new Image(),
   tree: new Image(),
-  clear: new Image(),
-  over: new Image()
+  clear: new Image(),   // クリア画面
+  over: new Image()     // ゲームオーバー画面
 };
 
-// 🖼 画像読み込み
-images.floor.src = "./assets/images/tanbo3.png";
-images.wall.src = "./assets/images/mizu_big.png";
-images.wallSpecial.src = "./assets/images/isikabe.png";
-images.enemy.src = "./assets/images/enemy.png";
-images.enemy2.src = "./assets/images/kaeru.png";
-images.item.src = "./assets/images/komebukuro.png";
-images.ally.src = "./assets/images/murabitopng.png";
-images.goal.src = "./assets/images/kakasi2.png";
-images.goalEntrance.src = "./assets/images/koudouiriguti.png";
-images.entrance.src = "./assets/images/kintin.png";
-images.mahouzin.src = "./assets/images/mahouzin.png";
-images.floorSpecial.src = "./assets/images/tikakoudouyuka.png";
-images.pl.src = "./assets/images/noumin.png";
-images.heart.src = "./assets/images/ha-to.png";
-images.bridge.src = "./assets/images/hasihasii.png";
-images.tree.src = "./assets/images/kinokabe.png";
-images.clear.src = "./assets/images/clear.png";
-images.over.src = "./assets/images/over.png";
+// 🖼 画像の読み込み
+images.floor.src = "./assets/images/tanbo3.png";//床
+images.wall.src = "./assets/images/mizu_big.png";//水
+images.wallSpecial.src = "./assets/images/isikabe.png";//石壁
+images.enemy.src = "./assets/images/enemy.png";//エネミー
+images.enemy2.src = "./assets/images/kaeru.png";//問題
+images.item.src = "./assets/images/komebukuro.png";//アイテム
+images.ally.src = "./assets/images/murabitopng.png";//村人
+images.goal.src = "./assets/images/kakasi2.png";//ゴール
+images.goalEntrance.src = "./assets/images/koudouiriguti.png";//入口
+images.entrance.src = "./assets/images/kintin.png";//壁
+images.mahouzin.src = "./assets/images/mahouzin.png";//第四マップゴール用
+images.floorSpecial.src = "./assets/images/tikakoudouyuka.png"; // 地下
+images.pl.src = "./assets/images/noumin.png";//主人公
+images.heart.src = "./assets/images/ha-to.png";//ハート
+images.bridge.src = "./assets/images/hasihasii.png";//橋
+images.tree.src = "./assets/images/kinokabe.png";//木
+images.clear.src = "./assets/images/clear.png";//クリア画面
+images.over.src = "./assets/images/over.png";//ゲームオーバー画面
 
 // 🌍 マップ状態
 let currentMapIndex = 0;
-let map = maps[currentMapIndex].map(row => [...row]);
+let map = maps[currentMapIndex].map(row => [...row]); // コピー保持
 let nearAlly = false;
 let gameCleared = false;
 let gameOver = false;
 
-// 🖼 キャンバスリサイズ
+// 🖼 キャンバスのリサイズ
 const dpr = window.devicePixelRatio || 1;
 function resizeCanvas() {
   canvas.width = map[0].length * tile * dpr;
@@ -89,7 +89,7 @@ function walkable(x, y) {
   return cell !== "#" && cell !== "T" && cell !== "W";
 }
 
-// ➡ 次マップ
+// ➡ 次マップへ
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
@@ -98,7 +98,7 @@ function nextMap() {
     gameCleared = true;
     return;
   }
-  map = maps[currentMapIndex].map(row => [...row]);
+  map = maps[currentMapIndex].map(row => [...row]); // コピーで初期化
   initPlayer(map);
   if (player.maxHp) player.hp = player.maxHp;
   initEnemies(map);
@@ -106,7 +106,7 @@ function nextMap() {
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
 }
 
-// 👤 プレイヤータイル処理
+// 👤 プレイヤーが立っているタイル処理
 function onTile(x, y) {
   const cell = map[y][x];
   nearAlly = cell === "A";
@@ -129,7 +129,7 @@ document.addEventListener("keydown", (e) => {
         if (score >= 10) heal(1, setStatus);
         setStatus(score >= 10 ? `🥚 卵を大量につぶした！HP回復！` : `🥚 卵つぶしスコア: ${score}`);
       });
-      map[player.y][player.x] = "0";
+      map[player.y][player.x] = "0"; 
       nearAlly = false;
     }, 1500);
     return;
@@ -187,16 +187,22 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ▶ リスタート関数（全体リセット）
+// ▶ Restart関数
 function restartGame() {
-  currentMapIndex = 0;
+  // マップ初期化
   map = maps[0].map(row => [...row]);
+  currentMapIndex = 0;
+
+  // プレイヤー初期化
   initPlayer(map);
   if (player.maxHp) player.hp = player.maxHp;
   player.x = player.startX || 0;
   player.y = player.startY || 0;
+
+  // 敵初期化
   initEnemies(map);
-  nearAlly = false;
+
+  // フラグリセット
   gameOver = false;
   gameCleared = false;
 
@@ -218,58 +224,6 @@ function draw() {
 
   if (gameOver) {
     ctx.drawImage(images.over, 0, 0, canvas.width / dpr, canvas.height / dpr);
+
     const btnW = 200, btnH = 50;
-    const btnX = (canvas.width / dpr - btnW) / 2;
-    const btnY = canvas.height / dpr * 0.7;
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.fillRect(btnX, btnY, btnW, btnH);
-    ctx.fillStyle = "#fff";
-    ctx.font = "20px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("Restart", btnX + btnW/2, btnY + 32);
-    return;
-  }
-
-  for (let y = 0; y < map.length; y++) {
-    for (let x = 0; x < map[0].length; x++) {
-      const dx = x * tile, dy = y * tile;
-      const cell = map[y][x];
-
-      if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
-      else ctx.drawImage(images.floor, dx, dy, tile, tile);
-
-      if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
-      if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
-      if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
-      if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
-      if (cell === "G") ctx.drawImage(currentMapIndex === 3 ? images.mahouzin : images.goal, dx, dy, tile, tile);
-      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
-      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
-      if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
-      if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
-      if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
-      if (cell === "N") ctx.drawImage(images.entrance, dx, dy, tile, tile);
-      if (cell === "O") ctx.drawImage(images.goalEntrance, dx, dy, tile, tile);
-    }
-  }
-
-  drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
-  ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
-  drawLifeGauge(ctx, images.heart, tile, player);
-
-  updatePlayer();
-  requestAnimationFrame(draw);
-}
-
-// 🖱 Restartクリック
-canvas.addEventListener("click", (e) => {
-  if (!gameOver) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * dpr;
-  const y = (e.clientY - rect.top) * dpr;
-  const btnW = 200, btnH = 50;
-  const btnX = (canvas.width / dpr - btnW) / 2 * dpr;
-  const btnY = canvas.height * 0.7;
-  if (x >= btnX && x <= btnX + btnW * dpr && y >= btnY && y <= btnY + btnH * dpr) {
-    restartGame();
- 
+    const btnX = (canvas.width / dpr -
