@@ -65,7 +65,7 @@ images.over.src = "./assets/images/over.png";//ゲームオーバー画面
 
 // 🌍 マップ状態
 let currentMapIndex = 0;
-let map = maps[currentMapIndex].map(row => [...row]); // コピー保持
+let map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピーで保持
 let nearAlly = false;
 let gameCleared = false;
 let gameOver = false;
@@ -98,7 +98,7 @@ function nextMap() {
     gameCleared = true;
     return;
   }
-  map = maps[currentMapIndex].map(row => [...row]); // コピーで初期化
+  map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピーで初期化
   initPlayer(map);
   if (player.maxHp) player.hp = player.maxHp;
   initEnemies(map);
@@ -187,29 +187,21 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ▶ Restart関数
+// ▶ リスタート関数
 function restartGame() {
-  // マップ初期化
-  map = maps[0].map(row => [...row]);
   currentMapIndex = 0;
-
-  // プレイヤー初期化
+  map = maps[currentMapIndex].map(row => [...row]); // 🆕 マップをリセット
   initPlayer(map);
-  if (player.maxHp) player.hp = player.maxHp;
-  player.x = player.startX || 0;
-  player.y = player.startY || 0;
-
-  // 敵初期化
+  if (player.maxHp) player.hp = player.maxHp; // 🆕 HP満タン
   initEnemies(map);
-
-  // フラグリセット
-  gameOver = false;
-  gameCleared = false;
-
   resizeCanvas();
   setStatus("🔄 ゲーム再スタート！");
-  if (bgm) { bgm.currentTime = 0; bgm.play().catch(()=>{}); }
-
+  gameCleared = false;
+  gameOver = false;
+  if (bgm) {
+    bgm.currentTime = 0;
+    bgm.play().catch(()=>{});
+  }
   draw();
 }
 
@@ -226,4 +218,82 @@ function draw() {
     ctx.drawImage(images.over, 0, 0, canvas.width / dpr, canvas.height / dpr);
 
     const btnW = 200, btnH = 50;
-    const btnX = (canvas.width / dpr -
+    const btnX = (canvas.width / dpr - btnW) / 2;
+    const btnY = canvas.height / dpr * 0.7;
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillRect(btnX, btnY, btnW, btnH);
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Restart", btnX + btnW/2, btnY + 32);
+    return;
+  }
+
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[0].length; x++) {
+      const dx = x * tile;
+      const dy = y * tile;
+      const cell = map[y][x];
+
+      if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
+      else ctx.drawImage(images.floor, dx, dy, tile, tile);
+
+      if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
+      if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
+      if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
+      if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
+
+      if (cell === "G") {
+        if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
+        else ctx.drawImage(images.goal, dx, dy, tile, tile);
+      }
+
+      if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
+      if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
+      if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
+      if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
+      if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
+      if (cell === "N") ctx.drawImage(images.entrance, dx, dy, tile, tile);
+      if (cell === "O") ctx.drawImage(images.goalEntrance, dx, dy, tile, tile);
+    }
+  }
+
+  drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
+  ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
+  drawLifeGauge(ctx, images.heart, tile, player);
+
+  updatePlayer();
+  requestAnimationFrame(draw);
+}
+
+// 🖱 Restartクリック処理
+canvas.addEventListener("click", (e) => {
+  if (!gameOver) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * dpr;
+  const y = (e.clientY - rect.top) * dpr;
+
+  const btnW = 200, btnH = 50;
+  const btnX = (canvas.width / dpr - btnW) / 2 * dpr;
+  const btnY = canvas.height * 0.7;
+  if (x >= btnX && x <= btnX+btnW*dpr && y >= btnY && y <= btnY+btnH*dpr) {
+    restartGame();
+  }
+});
+
+// ▶ ゲーム開始
+window.startGame = function () {
+  currentMapIndex = 0;
+  map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピー
+  initPlayer(map);
+  if (player.maxHp) player.hp = player.maxHp;
+  initEnemies(map); 
+  resizeCanvas();
+  setStatus("✅ ゲーム開始");
+
+  if (bgm) {
+    bgm.volume = 0.5;
+    bgm.play().catch(err => console.log("BGM再生エラー:", err));
+  }
+  draw();
+};
