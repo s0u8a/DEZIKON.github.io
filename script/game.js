@@ -22,37 +22,39 @@ const bgm = document.getElementById("bgm");
 const images = {
   floor: new Image(),
   wall: new Image(),
-  wallSpecial: new Image(), // 🆕 壁判定 (W)
+  wallSpecial: new Image(),
   enemy: new Image(),
-  enemy2: new Image(), // 🐸 カエル用
+  enemy2: new Image(),
   item: new Image(),
   ally: new Image(),
   goal: new Image(),
-  goalEntrance: new Image(), // 🆕 ゴール地点判定 (O)
-  entrance: new Image(),     // 🆕 入口判定 (N)
-  mahouzin: new Image(),     // 🆕 魔法陣 (M)
-  floorSpecial: new Image(), // 🆕 特殊床 (X)
+  goalEntrance: new Image(),
+  entrance: new Image(),
+  mahouzin: new Image(),
+  floorSpecial: new Image(),
   pl: new Image(),
   heart: new Image(),
-  bridge: new Image(), // 🆕 橋 (B)
-  tree: new Image()    // 🆕 木 (T)
+  bridge: new Image(),
+  tree: new Image()
 };
+
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
-images.wallSpecial.src = "./assets/images/isikabe.png";      // W
+images.wallSpecial.src = "./assets/images/isikabe.png";
 images.enemy.src = "./assets/images/enemy.png";
-images.enemy2.src = "./assets/images/kaeru.png"; // 🐸 カエル
+images.enemy2.src = "./assets/images/kaeru.png";
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/kakasi.png";
-images.goalEntrance.src = "./assets/images/koudouiriguti.png"; // O
-images.entrance.src = "./assets/images/kintin.png";             // N
-images.mahouzin.src = "./assets/images/mahouzin.png";           // M
-images.floorSpecial.src = "./assets/images/tikadoukuyuka.png"; // X
+images.goalEntrance.src = "./assets/images/koudouiriguti.png";
+images.entrance.src = "./assets/images/kintin.png";
+images.mahouzin.src = "./assets/images/mahouzin.png";
+// ✅ 修正ポイント：正しいファイル名に変更
+images.floorSpecial.src = "./assets/images/tikakoudouyuka.png";
 images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
-images.bridge.src = "./assets/images/hasihasii.png"; // B
-images.tree.src = "./assets/images/kinokabe.png";   // T
+images.bridge.src = "./assets/images/hasihasii.png";
+images.tree.src = "./assets/images/kinokabe.png";
 
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
@@ -69,14 +71,9 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// 🔹 移動できる判定
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
-  // "#" → 水 NG
-  // "T" → 木 NG
-  // "W" → 壁 NG
-  // "X", "M", "S" などは通れる
   return cell !== "#" && cell !== "T" && cell !== "W";
 }
 
@@ -97,12 +94,8 @@ function nextMap() {
 
 function onTile(x, y) {
   const cell = map[y][x];
-  if (cell === "A") {
-    setStatus("🤝 村人がいる！Enterで話しかけてください");
-    nearAlly = true;
-  } else {
-    nearAlly = false;
-  }
+  nearAlly = cell === "A";
+  if (nearAlly) setStatus("🤝 村人がいる！Enterで話しかけてください");
 }
 
 document.addEventListener("keydown", (e) => {
@@ -115,14 +108,10 @@ document.addEventListener("keydown", (e) => {
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
-        if (score >= 10) {
-          heal(1, setStatus);
-          setStatus(`🥚 卵を大量につぶした！HP回復！`);
-        } else {
-          setStatus(`🥚 卵つぶしスコア: ${score}`);
-        }
+        if (score >= 10) heal(1, setStatus);
+        setStatus(score >= 10 ? `🥚 卵を大量につぶした！HP回復！` : `🥚 卵つぶしスコア: ${score}`);
       });
-      map[player.y][player.x] = "0"; // 村人を消す
+      map[player.y][player.x] = "0";
       nearAlly = false;
     }, 1500);
     return;
@@ -140,7 +129,6 @@ document.addEventListener("keydown", (e) => {
 
     onTile(nx, ny);
 
-    // アイテム取得
     if (map[player.y][player.x] === "I") {
       heal(1, setStatus);
       setStatus("🍙 アイテムを取った！HP回復！");
@@ -148,21 +136,16 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 敵処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
       if (currentMapIndex === 1) {
         takeDamage(amt, setStatus);
         startFishingGame((score) => {
-          if (score >= 10) {
-            heal(1, setStatus);
-            setStatus(`🐟 ブラックバスを ${score} 匹釣った！HP回復！`);
-          } else if (score <= 0) {
-            takeDamage(1, setStatus);
-            setStatus(`❌ ブラックバスが少なすぎる…外道ばかり！HP減少`);
-          } else {
-            setStatus(`🎣 釣果: ブラックバス ${score}匹`);
-          }
+          if (score >= 10) heal(1, setStatus);
+          else if (score <= 0) takeDamage(1, setStatus);
+          setStatus(score >= 10 ? `🐟 ブラックバスを ${score} 匹釣った！HP回復！`
+                    : score <= 0 ? `❌ ブラックバスが少なすぎる…外道ばかり！HP減少`
+                    : `🎣 釣果: ブラックバス ${score}匹`);
           removeEnemy(enemyIndex);
         });
       } else {
@@ -172,13 +155,9 @@ document.addEventListener("keydown", (e) => {
     } else if (type === "frog") {
       setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
       startNiigataQuiz((correct) => {
-        if (correct) {
-          heal(1, setStatus);
-          setStatus("⭕ 正解！HP回復！");
-        } else {
-          takeDamage(1, setStatus);
-          setStatus("❌ 不正解！HP減少");
-        }
+        if (correct) heal(1, setStatus);
+        else takeDamage(1, setStatus);
+        setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
         removeEnemy(enemyIndex);
       });
     }
@@ -190,7 +169,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// 🔹 描画処理
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -200,14 +178,9 @@ function draw() {
       const dy = y * tile;
       const cell = map[y][x];
 
-      // X のときだけ特殊床、それ以外は普通の床を下地にする
-      if (cell === "X") {
-        ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
-      } else {
-        ctx.drawImage(images.floor, dx, dy, tile, tile);
-      }
+      if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
+      else ctx.drawImage(images.floor, dx, dy, tile, tile);
 
-      // 上物の描画
       if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
