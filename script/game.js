@@ -38,7 +38,9 @@ const images = {
   pl: new Image(),
   heart: new Image(),
   bridge: new Image(),
-  tree: new Image()
+  tree: new Image(),
+  clear: new Image(),   // 🆕 クリア画面
+  over: new Image()     // 🆕 ゲームオーバー画面
 };
 
 // 🖼 画像の読み込み
@@ -58,11 +60,15 @@ images.pl.src = "./assets/images/noumin.png";//主人公
 images.heart.src = "./assets/images/ha-to.png";//ハート
 images.bridge.src = "./assets/images/hasihasii.png";//橋
 images.tree.src = "./assets/images/kinokabe.png";//木
+images.clear.src = "./assets/images/clear.png";//クリア画面
+images.over.src = "./assets/images/over.png";//ゲームオーバー画面
 
 // 🌍 マップ状態
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
+let gameCleared = false; // 🆕 クリアフラグ
+let gameOver = false;    // 🆕 ゲームオーバーフラグ
 
 // 🖼 キャンバスのリサイズ
 const dpr = window.devicePixelRatio || 1;
@@ -89,10 +95,10 @@ function nextMap() {
   if (currentMapIndex >= maps.length) {
     setStatus("🎉 全クリア！！");
     if (bgm) bgm.pause();
+    gameCleared = true; // 🆕 フラグON
     return;
   }
   map = maps[currentMapIndex];
-  console.log("次マップ読み込み:", currentMapIndex, map.map(row => row.join("")));
   initPlayer(map);
   initEnemies(map);
   resizeCanvas();
@@ -108,6 +114,8 @@ function onTile(x, y) {
 
 // ⌨️ キー操作
 document.addEventListener("keydown", (e) => {
+  if (gameCleared || gameOver) return; // 🆕 ゲーム終了時は操作不可
+
   let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
   else if (e.key === "ArrowDown") ny++;
@@ -179,13 +187,52 @@ document.addEventListener("keydown", (e) => {
   // ☠️ ゲームオーバー処理
   if (checkGameOver(player, setStatus)) {
     if (bgm) bgm.pause();
+    gameOver = true; // 🆕 フラグON
     return;
   }
 });
 
+// ▶ リスタート関数
+function restartGame() {
+  currentMapIndex = 0;
+  map = maps[currentMapIndex];
+  initPlayer(map);
+  initEnemies(map);
+  resizeCanvas();
+  setStatus("🔄 ゲーム再スタート！");
+  gameCleared = false;
+  gameOver = false;
+  if (bgm) {
+    bgm.currentTime = 0;
+    bgm.play().catch(()=>{});
+  }
+  draw();
+}
+
 // 🎨 描画処理
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (gameCleared) {
+    ctx.drawImage(images.clear, 0, 0, canvas.width / dpr, canvas.height / dpr);
+    return;
+  }
+
+  if (gameOver) {
+    ctx.drawImage(images.over, 0, 0, canvas.width / dpr, canvas.height / dpr);
+
+    // Restartボタン
+    const btnW = 200, btnH = 50;
+    const btnX = (canvas.width / dpr - btnW) / 2;
+    const btnY = canvas.height / dpr * 0.7;
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillRect(btnX, btnY, btnW, btnH);
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Restart", btnX + btnW/2, btnY + 32);
+    return;
+  }
 
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
@@ -205,11 +252,8 @@ function draw() {
 
       // 🔹 ゴール描画（第4マップだけ魔法陣）
       if (cell === "G") {
-        if (currentMapIndex === 3) {
-          ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
-        } else {
-          ctx.drawImage(images.goal, dx, dy, tile, tile);
-        }
+        if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
+        else ctx.drawImage(images.goal, dx, dy, tile, tile);
       }
 
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
@@ -231,17 +275,30 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
+// 🖱 Restartクリック処理
+canvas.addEventListener("click", (e) => {
+  if (!gameOver) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * dpr;
+  const y = (e.clientY - rect.top) * dpr;
+
+  const btnW = 200, btnH = 50;
+  const btnX = (canvas.width / dpr - btnW) / 2 * dpr;
+  const btnY = canvas.height * 0.7;
+  if (x >= btnX && x <= btnX+btnW*dpr && y >= btnY && y <= btnY+btnH*dpr) {
+    restartGame();
+  }
+});
+
 // ▶ ゲーム開始
 window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
-  console.log("startGame後のマップ:", map.map(row => row.join("")));
   initPlayer(map);
   initEnemies(map); 
   resizeCanvas();
   setStatus("✅ ゲーム開始");
 
-  // 🎵 BGM再生開始
   if (bgm) {
     bgm.volume = 0.5;
     bgm.play().catch(err => console.log("BGM再生エラー:", err));
