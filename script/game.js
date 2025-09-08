@@ -42,22 +42,22 @@ const images = {
 };
 
 // 🖼 画像の読み込み
-images.floor.src = "./assets/images/tanbo3.png";
-images.wall.src = "./assets/images/mizu_big.png";
-images.wallSpecial.src = "./assets/images/isikabe.png";
-images.enemy.src = "./assets/images/enemy.png";
-images.enemy2.src = "./assets/images/kaeru.png";
-images.item.src = "./assets/images/komebukuro.png";
-images.ally.src = "./assets/images/murabitopng.png";
-images.goal.src = "./assets/images/kakasi2.png";
-images.goalEntrance.src = "./assets/images/koudouiriguti.png";
-images.entrance.src = "./assets/images/kintin.png";
-images.mahouzin.src = "./assets/images/mahouzin.png";
-images.floorSpecial.src = "./assets/images/tikakoudouyuka.png"; // ✅ 正しいファイル名
-images.pl.src = "./assets/images/noumin.png";
-images.heart.src = "./assets/images/ha-to.png";
-images.bridge.src = "./assets/images/hasihasii.png";
-images.tree.src = "./assets/images/kinokabe.png";
+images.floor.src = "./assets/images/tanbo3.png";//床
+images.wall.src = "./assets/images/mizu_big.png";//水
+images.wallSpecial.src = "./assets/images/isikabe.png";//石壁
+images.enemy.src = "./assets/images/enemy.png";//エネミー
+images.enemy2.src = "./assets/images/kaeru.png";//問題
+images.item.src = "./assets/images/komebukuro.png";//アイテム
+images.ally.src = "./assets/images/murabitopng.png";//タニシつぶし
+images.goal.src = "./assets/images/kakasi2.png";//ゴール
+images.goalEntrance.src = "./assets/images/koudouiriguti.png";//入口
+images.entrance.src = "./assets/images/kintin.png";//壁
+images.mahouzin.src = "./assets/images/mahouzin.png";//ゴール
+images.floorSpecial.src = "./assets/images/tikakoudouyuka.png"; // 地下
+images.pl.src = "./assets/images/noumin.png";//主人公
+images.heart.src = "./assets/images/ha-to.png";//ハート
+images.bridge.src = "./assets/images/hasihasii.png";//橋
+images.tree.src = "./assets/images/kinokabe.png";//木
 
 // 🌍 マップ状態
 let currentMapIndex = 0;
