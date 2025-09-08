@@ -22,37 +22,37 @@ const bgm = document.getElementById("bgm");
 const images = {
   floor: new Image(),
   wall: new Image(),
-  wallSpecial: new Image(), // 🆕 壁判定
+  wallSpecial: new Image(), // 🆕 壁判定 (W)
   enemy: new Image(),
   enemy2: new Image(), // 🐸 カエル用
   item: new Image(),
   ally: new Image(),
   goal: new Image(),
-  goalEntrance: new Image(), // 🆕 ゴール地点判定
-  entrance: new Image(),     // 🆕 入口判定
-  mahouzin: new Image(),     // 🆕 魔法陣
-  floorSpecial: new Image(), // 🆕 地面判定
+  goalEntrance: new Image(), // 🆕 ゴール地点判定 (O)
+  entrance: new Image(),     // 🆕 入口判定 (N)
+  mahouzin: new Image(),     // 🆕 魔法陣 (M)
+  floorSpecial: new Image(), // 🆕 地面判定 (X) ← tikadoukuyuka.png を X に割当
   pl: new Image(),
   heart: new Image(),
-  bridge: new Image(), // 🆕 橋
-  tree: new Image()    // 🆕 木
+  bridge: new Image(), // 🆕 橋 (B)
+  tree: new Image()    // 🆕 木 (T)
 };
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
-images.wallSpecial.src = "./assets/images/isikabe.png";      // 壁判定
+images.wallSpecial.src = "./assets/images/isikabe.png";      // W
 images.enemy.src = "./assets/images/enemy.png";
 images.enemy2.src = "./assets/images/kaeru.png"; // 🐸 カエル
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
-images.goalEntrance.src = "./assets/images/koudouiriguti.png"; // ゴール
-images.entrance.src = "./assets/images/kintin.png";             // 入口
-images.mahouzin.src = "./assets/images/mahouzin.png";           // 魔法陣
-images.floorSpecial.src = "./assets/images/tikadoukuyuka.png"; // 地面
+images.goalEntrance.src = "./assets/images/koudouiriguti.png"; // O
+images.entrance.src = "./assets/images/kintin.png";             // N
+images.mahouzin.src = "./assets/images/mahouzin.png";           // M
+images.floorSpecial.src = "./assets/images/tikadoukuyuka.png"; // X (特殊床)
 images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
-images.bridge.src = "./assets/images/hasihasii.png"; // 橋
-images.tree.src = "./assets/images/kinokabe.png";   // 木
+images.bridge.src = "./assets/images/hasihasii.png"; // B
+images.tree.src = "./assets/images/kinokabe.png";   // T
 
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
@@ -76,6 +76,7 @@ function walkable(x, y) {
   // "#" → 壁（水）NG
   // "T" → 木 NG
   // "W" → 壁判定 NG
+  // X（特殊床）、S（スタート）、M（魔法陣）などは歩ける
   return cell !== "#" && cell !== "T" && cell !== "W";
 }
 
@@ -198,12 +199,12 @@ function draw() {
       const dy = y * tile;
       const cell = map[y][x];
 
-      // 基本地面
+      // 基本地面（従来の床を下地として描画）
       ctx.drawImage(images.floor, dx, dy, tile, tile);
 
       // 新タイル描画
-      if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
-      if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile); // 壁判定
+      if (cell === "#" ) ctx.drawImage(images.wall, dx, dy, tile, tile);
+      if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile); // 壁判定（新）
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
@@ -211,10 +212,11 @@ function draw() {
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
-      if (cell === "S") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // 地面判定
+      // S はスタートマーカー（プレイヤー初期位置）なので描画は床のままにするかプレイヤーが上に乗る想定
+      if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // ← ここが変更: X = tikadoukuyuka.png
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);     // 魔法陣
-      if (cell === "N") ctx.drawImage(images.entrance, dx, dy, tile, tile);     // 入口判定
-      if (cell === "O") ctx.drawImage(images.goalEntrance, dx, dy, tile, tile);// ゴール判定
+      if (cell === "N") ctx.drawImage(images.entrance, dx, dy, tile, tile);
+      if (cell === "O") ctx.drawImage(images.goalEntrance, dx, dy, tile, tile);
     }
   }
 
