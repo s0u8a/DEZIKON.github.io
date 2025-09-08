@@ -28,6 +28,11 @@ canvas.width  = VIEW_COLS * TILE;
 canvas.height = VIEW_ROWS * TILE;
 
 // -----------------------------
+// import 追加（エンディング関連）
+// -----------------------------
+import { checkGoal, checkGameOver, nextMap, startEnding } from "./ending.js";
+
+// -----------------------------
 // プレイヤー情報
 // -----------------------------
 const player = {
@@ -128,6 +133,22 @@ function onTile(x, y) {
     setStatus('🤝 村人に会った！');
   } else if (t === 'G') {
     setStatus('🏁 ゴール！');
+  }
+}
+
+// 🟢 ゴールしたら ending.js の nextMap を呼ぶ
+    nextMap({
+      MAPS: window.MAPS ?? [],               // マップリストを window 側で持っている想定
+      currentMapIndexRef: window.currentMapIndexRef ?? { value: 0 },
+      setStatus: setStatus,
+      reloadMap: () => {
+        // 再読み込み処理
+        GRID = window.GMAP?.grid ?? GRID;
+        ROWS = GRID.length;
+        COLS = GRID[0]?.length ?? COLS;
+        console.log("マップリロード");
+      }
+    });
   }
 }
 
