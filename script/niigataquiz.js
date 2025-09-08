@@ -22,28 +22,10 @@ export function startNiigataQuiz(onFinish) {
   // 選択肢をボタンとして表示
   const choicesDiv = document.getElementById("quizChoices");
   choicesDiv.innerHTML = "";
-
-  // 解説エリアを追加（毎回リセット）
-  let explanationDiv = document.getElementById("quizExplanation");
-  if (!explanationDiv) {
-    explanationDiv = document.createElement("div");
-    explanationDiv.id = "quizExplanation";
-    explanationDiv.style.marginTop = "20px";
-    explanationDiv.style.fontWeight = "bold";
-    quizScreen.appendChild(explanationDiv);
-  }
-  explanationDiv.textContent = "";
-
-  // 戻るボタンを準備（最初は非表示）
-  let backBtn = document.getElementById("quizBackBtn");
-  if (!backBtn) {
-    backBtn = document.createElement("button");
-    backBtn.id = "quizBackBtn";
-    backBtn.textContent = "⬅ ゲームに戻る";
-    backBtn.style.display = "none";
-    backBtn.style.marginTop = "20px";
-    quizScreen.appendChild(backBtn);
-  }
+  const explanationDiv = document.getElementById("quizExplanation");
+  explanationDiv.innerHTML = "";
+  const backBtn = document.getElementById("backToGame");
+  backBtn.style.display = "none";
 
   quiz.choices.forEach((choice, idx) => {
     const btn = document.createElement("button");
@@ -53,13 +35,15 @@ export function startNiigataQuiz(onFinish) {
       let correct = false;
 
       if (answer === quiz.correctAnswer) {
-        explanationDiv.textContent = `⭕ 正解！ ${quiz.explanation}`;
-        explanationDiv.style.color = "green";
         correct = true;
-      } else {
-        explanationDiv.textContent = `❌ 不正解！ 正解は ${quiz.correctAnswer} : ${quiz.explanation}`;
-        explanationDiv.style.color = "red";
       }
+
+      // 解説文と画像を表示
+      explanationDiv.innerHTML = `
+        <p>${correct ? "⭕ 正解！" : "❌ 不正解！"} 正解は ${quiz.correctAnswer} です。</p>
+        <p>${quiz.explanation}</p>
+        ${quiz.image ? `<img src="${quiz.image}" alt="解説画像" style="max-width:100%;margin-top:10px;">` : ""}
+      `;
 
       // 戻るボタンを表示
       backBtn.style.display = "block";
