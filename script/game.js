@@ -28,7 +28,9 @@ const images = {
   ally: new Image(),
   goal: new Image(),
   pl: new Image(),
-  heart: new Image()
+  heart: new Image(),
+  bridge: new Image(), // 🆕 橋
+  tree: new Image()    // 🆕 木
 };
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
@@ -39,6 +41,8 @@ images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/goal.png";
 images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
+images.bridge.src = "./assets/images/hasihasii.png"; // 橋
+images.tree.src = "./assets/images/kinokabe.png";   // 木
  
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
@@ -55,9 +59,14 @@ function resizeCanvas() {
 }
 resizeCanvas();
  
+// 🔹 移動できる判定
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
-  return map[y][x] !== "#";
+  const cell = map[y][x];
+  // "#" → 壁（水）NG
+  // "T" → 木 NG
+  // それ以外はOK（"B" 橋は歩ける）
+  return cell !== "#" && cell !== "T";
 }
  
 function nextMap() {
@@ -185,6 +194,8 @@ function draw() {
       if (cell === "G") ctx.drawImage(images.goal, dx, dy, tile, tile);
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile); // 🐸
+      if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile); // 🆕 橋
+      if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);   // 🆕 木
     }
   }
  
