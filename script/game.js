@@ -39,8 +39,8 @@ const images = {
   heart: new Image(),
   bridge: new Image(),
   tree: new Image(),
-  clear: new Image(),   // 🆕 クリア画面
-  over: new Image()     // 🆕 ゲームオーバー画面
+  clear: new Image(),   // クリア画面
+  over: new Image()     // ゲームオーバー画面
 };
 
 // 🖼 画像の読み込み
@@ -50,7 +50,7 @@ images.wallSpecial.src = "./assets/images/isikabe.png";//石壁
 images.enemy.src = "./assets/images/enemy.png";//エネミー
 images.enemy2.src = "./assets/images/kaeru.png";//問題
 images.item.src = "./assets/images/komebukuro.png";//アイテム
-images.ally.src = "./assets/images/murabitopng.png";//タニシつぶし
+images.ally.src = "./assets/images/murabitopng.png";//村人
 images.goal.src = "./assets/images/kakasi2.png";//ゴール
 images.goalEntrance.src = "./assets/images/koudouiriguti.png";//入口
 images.entrance.src = "./assets/images/kintin.png";//壁
@@ -65,10 +65,10 @@ images.over.src = "./assets/images/over.png";//ゲームオーバー画面
 
 // 🌍 マップ状態
 let currentMapIndex = 0;
-let map = maps[currentMapIndex];
+let map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピーで保持
 let nearAlly = false;
-let gameCleared = false; // 🆕 クリアフラグ
-let gameOver = false;    // 🆕 ゲームオーバーフラグ
+let gameCleared = false;
+let gameOver = false;
 
 // 🖼 キャンバスのリサイズ
 const dpr = window.devicePixelRatio || 1;
@@ -86,7 +86,7 @@ resizeCanvas();
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
-  return cell !== "#" && cell !== "T" && cell !== "W"; // 壁・木・石壁は進入不可
+  return cell !== "#" && cell !== "T" && cell !== "W";
 }
 
 // ➡ 次マップへ
@@ -95,11 +95,12 @@ function nextMap() {
   if (currentMapIndex >= maps.length) {
     setStatus("🎉 全クリア！！");
     if (bgm) bgm.pause();
-    gameCleared = true; // 🆕 フラグON
+    gameCleared = true;
     return;
   }
-  map = maps[currentMapIndex];
+  map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピーで初期化
   initPlayer(map);
+  if (player.maxHp) player.hp = player.maxHp;
   initEnemies(map);
   resizeCanvas();
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
@@ -114,7 +115,7 @@ function onTile(x, y) {
 
 // ⌨️ キー操作
 document.addEventListener("keydown", (e) => {
-  if (gameCleared || gameOver) return; // 🆕 ゲーム終了時は操作不可
+  if (gameCleared || gameOver) return;
 
   let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
@@ -122,20 +123,18 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
-    // 🧑‍🌾 村人イベント
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
         if (score >= 10) heal(1, setStatus);
         setStatus(score >= 10 ? `🥚 卵を大量につぶした！HP回復！` : `🥚 卵つぶしスコア: ${score}`);
       });
-      map[player.y][player.x] = "0"; // 村人を消す
+      map[player.y][player.x] = "0"; 
       nearAlly = false;
     }, 1500);
     return;
   } else return;
 
-  // 🚶 移動処理
   if (walkable(nx, ny)) {
     player.x = nx;
     player.y = ny;
@@ -145,10 +144,8 @@ document.addEventListener("keydown", (e) => {
       nextMap();
       return;
     }
-
     onTile(nx, ny);
 
-    // 🍙 アイテム取得処理
     if (map[player.y][player.x] === "I") {
       heal(1, setStatus);
       setStatus("🍙 アイテムを取った！HP回復！");
@@ -156,7 +153,6 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 👾 敵処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
       if (currentMapIndex === 1) {
@@ -184,10 +180,9 @@ document.addEventListener("keydown", (e) => {
     }
   });
 
-  // ☠️ ゲームオーバー処理
   if (checkGameOver(player, setStatus)) {
     if (bgm) bgm.pause();
-    gameOver = true; // 🆕 フラグON
+    gameOver = true;
     return;
   }
 });
@@ -195,8 +190,9 @@ document.addEventListener("keydown", (e) => {
 // ▶ リスタート関数
 function restartGame() {
   currentMapIndex = 0;
-  map = maps[currentMapIndex];
+  map = maps[currentMapIndex].map(row => [...row]); // 🆕 マップをリセット
   initPlayer(map);
+  if (player.maxHp) player.hp = player.maxHp; // 🆕 HP満タン
   initEnemies(map);
   resizeCanvas();
   setStatus("🔄 ゲーム再スタート！");
@@ -221,7 +217,6 @@ function draw() {
   if (gameOver) {
     ctx.drawImage(images.over, 0, 0, canvas.width / dpr, canvas.height / dpr);
 
-    // Restartボタン
     const btnW = 200, btnH = 50;
     const btnX = (canvas.width / dpr - btnW) / 2;
     const btnY = canvas.height / dpr * 0.7;
@@ -240,17 +235,14 @@ function draw() {
       const dy = y * tile;
       const cell = map[y][x];
 
-      // 床
       if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
       else ctx.drawImage(images.floor, dx, dy, tile, tile);
 
-      // 壁やオブジェクト
       if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
 
-      // 🔹 ゴール描画（第4マップだけ魔法陣）
       if (cell === "G") {
         if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
         else ctx.drawImage(images.goal, dx, dy, tile, tile);
@@ -266,7 +258,6 @@ function draw() {
     }
   }
 
-  // 敵・プレイヤー・UI
   drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
@@ -293,8 +284,9 @@ canvas.addEventListener("click", (e) => {
 // ▶ ゲーム開始
 window.startGame = function () {
   currentMapIndex = 0;
-  map = maps[currentMapIndex];
+  map = maps[currentMapIndex].map(row => [...row]); // 🆕 コピー
   initPlayer(map);
+  if (player.maxHp) player.hp = player.maxHp;
   initEnemies(map); 
   resizeCanvas();
   setStatus("✅ ゲーム開始");
@@ -303,6 +295,5 @@ window.startGame = function () {
     bgm.volume = 0.5;
     bgm.play().catch(err => console.log("BGM再生エラー:", err));
   }
-
   draw();
 };
