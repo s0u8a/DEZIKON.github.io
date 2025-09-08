@@ -6,10 +6,12 @@ import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
 import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズ
 
+// 🎮 キャンバス設定
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
+// 📢 メッセージ表示
 const statusEl = document.getElementById("messageBox");
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
@@ -19,6 +21,7 @@ function setStatus(msg) {
 // 🎵 BGM要素取得
 const bgm = document.getElementById("bgm");
 
+// 🎨 画像管理
 const images = {
   floor: new Image(),
   wall: new Image(),
@@ -38,6 +41,7 @@ const images = {
   tree: new Image()
 };
 
+// 🖼 画像の読み込み
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
 images.wallSpecial.src = "./assets/images/isikabe.png";
@@ -49,17 +53,18 @@ images.goal.src = "./assets/images/kakasi2.png";
 images.goalEntrance.src = "./assets/images/koudouiriguti.png";
 images.entrance.src = "./assets/images/kintin.png";
 images.mahouzin.src = "./assets/images/mahouzin.png";
-// ✅ 修正ポイント：正しいファイル名に変更
-images.floorSpecial.src = "./assets/images/tikakoudouyuka.png";
+images.floorSpecial.src = "./assets/images/tikakoudouyuka.png"; // ✅ 正しいファイル名
 images.pl.src = "./assets/images/noumin.png";
 images.heart.src = "./assets/images/ha-to.png";
 images.bridge.src = "./assets/images/hasihasii.png";
 images.tree.src = "./assets/images/kinokabe.png";
 
+// 🌍 マップ状態
 let currentMapIndex = 0;
 let map = maps[currentMapIndex];
 let nearAlly = false;
 
+// 🖼 キャンバスのリサイズ
 const dpr = window.devicePixelRatio || 1;
 function resizeCanvas() {
   canvas.width = map[0].length * tile * dpr;
@@ -71,12 +76,14 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
+// 🚶 移動可能判定
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
-  return cell !== "#" && cell !== "T" && cell !== "W";
+  return cell !== "#" && cell !== "T" && cell !== "W"; // 壁・木・石壁は進入不可
 }
 
+// ➡ 次マップへ
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
@@ -92,12 +99,14 @@ function nextMap() {
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
 }
 
+// 👤 プレイヤーが立っているタイル処理
 function onTile(x, y) {
   const cell = map[y][x];
   nearAlly = cell === "A";
   if (nearAlly) setStatus("🤝 村人がいる！Enterで話しかけてください");
 }
 
+// ⌨️ キー操作
 document.addEventListener("keydown", (e) => {
   let nx = player.x, ny = player.y;
   if (e.key === "ArrowUp") ny--;
@@ -105,18 +114,20 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
+    // 🧑‍🌾 村人イベント
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
         if (score >= 10) heal(1, setStatus);
         setStatus(score >= 10 ? `🥚 卵を大量につぶした！HP回復！` : `🥚 卵つぶしスコア: ${score}`);
       });
-      map[player.y][player.x] = "0";
+      map[player.y][player.x] = "0"; // 村人を消す
       nearAlly = false;
     }, 1500);
     return;
   } else return;
 
+  // 🚶 移動処理
   if (walkable(nx, ny)) {
     player.x = nx;
     player.y = ny;
@@ -129,6 +140,7 @@ document.addEventListener("keydown", (e) => {
 
     onTile(nx, ny);
 
+    // 🍙 アイテム取得処理
     if (map[player.y][player.x] === "I") {
       heal(1, setStatus);
       setStatus("🍙 アイテムを取った！HP回復！");
@@ -136,6 +148,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
+  // 👾 敵処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
       if (currentMapIndex === 1) {
@@ -163,12 +176,14 @@ document.addEventListener("keydown", (e) => {
     }
   });
 
+  // ☠️ ゲームオーバー処理
   if (checkGameOver(player, setStatus)) {
     if (bgm) bgm.pause();
     return;
   }
 });
 
+// 🎨 描画処理
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -178,9 +193,11 @@ function draw() {
       const dy = y * tile;
       const cell = map[y][x];
 
+      // 床
       if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
       else ctx.drawImage(images.floor, dx, dy, tile, tile);
 
+      // 壁やオブジェクト
       if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
@@ -196,6 +213,7 @@ function draw() {
     }
   }
 
+  // 敵・プレイヤー・UI
   drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
@@ -204,6 +222,7 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
+// ▶ ゲーム開始
 window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex];
@@ -213,10 +232,4 @@ window.startGame = function () {
   resizeCanvas();
   setStatus("✅ ゲーム開始");
 
-  if (bgm) {
-    bgm.volume = 0.5;
-    bgm.play().catch(err => console.log("BGM再生エラー:", err));
-  }
-
-  draw();
-};
+  // 🎵
