@@ -89,6 +89,13 @@ function walkable(x, y) {
   return cell !== "#" && cell !== "T" && cell !== "W";
 }
 
+// ▶ プレイヤー完全リセット
+function resetPlayer() {
+  initPlayer(map);
+  player.hearts = player.maxHearts; // ✅ HP満タンに
+  player.invincibleTime = 0;
+}
+
 // ➡ 次マップへ
 function nextMap() {
   currentMapIndex++;
@@ -99,9 +106,7 @@ function nextMap() {
     return;
   }
   map = maps[currentMapIndex].map(row => [...row]);
-  const newPlayer = initPlayer(map);
-  Object.assign(player, newPlayer); // 古い player オブジェクトに反映
-  player.hp = player.maxHp;
+  resetPlayer();
   initEnemies(map);
   resizeCanvas();
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
@@ -192,9 +197,7 @@ document.addEventListener("keydown", (e) => {
 function restartGame() {
   currentMapIndex = 0;
   map = maps[currentMapIndex].map(row => [...row]);
-  const newPlayer = initPlayer(map);
-  Object.assign(player, newPlayer);
-  player.hp = player.maxHp;
+  resetPlayer();
   initEnemies(map);
   resizeCanvas();
   setStatus("🔄 ゲーム再スタート！");
@@ -287,9 +290,7 @@ canvas.addEventListener("click", (e) => {
 window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex].map(row => [...row]);
-  const newPlayer = initPlayer(map);
-  Object.assign(player, newPlayer);
-  player.hp = player.maxHp;
+  resetPlayer();
   initEnemies(map); 
   resizeCanvas();
   setStatus("✅ ゲーム開始");
