@@ -58,7 +58,7 @@ export const invasiveSpeciesQuiz = [
   {
     question: "新潟県で外来生物を見つけたときに、やってはいけない行為は？",
     choices: ["A. 写真を撮る", "B. 捕まえて別の場所に放す", "C. 自治体に報告する"],
-    correctAnswer: "B",
+    correctAnswer: "C",
     explanation: "放流・移動は分布拡大につながります。見つけたら報告が大切です。",
     image: "assets/images/quiz/dame.png"
   },
