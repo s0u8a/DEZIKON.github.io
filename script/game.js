@@ -52,7 +52,7 @@ images.ally.src = "./assets/images/murabitopng.png";//タニシつぶし
 images.goal.src = "./assets/images/kakasi2.png";//ゴール
 images.goalEntrance.src = "./assets/images/koudouiriguti.png";//入口
 images.entrance.src = "./assets/images/kintin.png";//壁
-images.mahouzin.src = "./assets/images/mahouzin.png";//ゴール（第四マップ用）
+images.mahouzin.src = "./assets/images/mahouzin.png";//第四マップゴール用
 images.floorSpecial.src = "./assets/images/tikakoudouyuka.png"; // 地下
 images.pl.src = "./assets/images/noumin.png";//主人公
 images.heart.src = "./assets/images/ha-to.png";//ハート
@@ -203,7 +203,7 @@ function draw() {
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
 
-      // 🔹 ゴール描画：第四マップだけ魔法陣、それ以外は通常ゴール
+      // 🔹 ゴール描画（第四マップだけ魔法陣）
       if (cell === "G") {
         if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
         else ctx.drawImage(images.goal, dx, dy, tile, tile);
