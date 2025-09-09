@@ -41,28 +41,31 @@ export function updatePlayer() {
   lifeAnimFrame++; // フレーム進行
 }
 
-// プレイヤー頭上にハートを描画（鼓動付き）
+// 🆕 右上にハートを横並びで描画（鼓動付き）
 export function drawLifeGauge(ctx, heartImg, tile, player) {
-  const baseX = player.x * tile;
-  const baseY = player.y * tile - 20;
+  const padding = 10;   // 右上からの余白
+  const heartSize = 20; // ハートのサイズ
+  const dpr = window.devicePixelRatio || 1;
+  const canvasWidth = ctx.canvas.width / dpr;
 
   for (let i = 0; i < player.maxHearts; i++) {
-    const dx = baseX + i * 20;
-    const dy = baseY;
+    // 右端から左へ横並び
+    const dx = canvasWidth - padding - (player.maxHearts - i) * (heartSize + 5);
+    const dy = padding;
 
     if (i < player.hearts) {
       if (player.hearts === 1 && i === 0) {
         // 残り1個のときだけ鼓動
         const pulse = 1 + 0.2 * Math.sin(lifeAnimFrame * 0.2);
-        const size = 16 * pulse;
-        const offset = (16 - size) / 2;
+        const size = heartSize * pulse;
+        const offset = (heartSize - size) / 2;
         ctx.drawImage(heartImg, dx + offset, dy + offset, size, size);
       } else {
-        ctx.drawImage(heartImg, dx, dy, 16, 16);
+        ctx.drawImage(heartImg, dx, dy, heartSize, heartSize);
       }
     } else {
       ctx.globalAlpha = 0.3;
-      ctx.drawImage(heartImg, dx, dy, 16, 16);
+      ctx.drawImage(heartImg, dx, dy, heartSize, heartSize);
       ctx.globalAlpha = 1.0;
     }
   }
