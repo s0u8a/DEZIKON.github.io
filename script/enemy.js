@@ -11,6 +11,10 @@ export function initEnemies(GRID) {
       } else if (GRID[y][x] === "F") {
         enemies.push({ x, y, dx: 1, dy: 0, type: "frog" });
         GRID[y][x] = "0";
+      } else if (GRID[y][x] === "H") {
+        // 🆕 H -> araiteki 敵
+        enemies.push({ x, y, dx: 1, dy: 0, type: "araiteki" });
+        GRID[y][x] = "0";
       }
     }
   }
@@ -43,7 +47,7 @@ export function updateEnemies(walkable, player, onHit) {
   if (player.invincibleTime > 0) player.invincibleTime--;
 }
 
-export function drawEnemies(ctx, imgEnemy, imgFrog, TILE, offsetX, offsetY, canvasW, canvasH) {
+export function drawEnemies(ctx, imgEnemy, imgFrog, imgAraiteki, TILE, offsetX, offsetY, canvasW, canvasH) {
   enemyAnim++;
   for (let e of enemies) {
     const dx = (e.x - offsetX) * TILE;
@@ -54,6 +58,7 @@ export function drawEnemies(ctx, imgEnemy, imgFrog, TILE, offsetX, offsetY, canv
     const off = (TILE - size) / 2;
     if (e.type === "normal") ctx.drawImage(imgEnemy, dx + off, dy + off, size, size);
     else if (e.type === "frog") ctx.drawImage(imgFrog, dx + off, dy + off, size, size);
+    else if (e.type === "araiteki") ctx.drawImage(imgAraiteki, dx + off, dy + off, size, size);
   }
 }
 
