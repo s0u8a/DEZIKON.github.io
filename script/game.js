@@ -4,7 +4,8 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy, enemies } from ".
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js";
+import { startNiigataQuiz } from "./niigataquiz.js"; 
+import { startNiigataHardQuiz } from "./startNiigataHardQuiz.js"; // 🆕 高難易度クイズ
 
 // 🎮 キャンバス設定
 const canvas = document.getElementById("gameCanvas");
@@ -43,7 +44,7 @@ const images = {
   tree: new Image(),
   clear: new Image(),
   over: new Image(),
-  sadometu: new Image(), // 🆕 敵全滅エンディング
+  sadometu: new Image(),
 };
 
 // 🖼 画像読み込み
@@ -52,7 +53,7 @@ images.wall.src = "./assets/images/mizu_big.png";
 images.wallSpecial.src = "./assets/images/isikabe.png";
 images.enemy.src = "./assets/images/enemy.png";
 images.enemy2.src = "./assets/images/kaeru.png";
-images.enemy3.src = "./assets/images/araiteki.png";
+images.enemy3.src = "./assets/images/araiguma.png"; // 🦝 アライグマ
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.allyFishing.src = "./assets/images/turibito.png";
@@ -207,12 +208,17 @@ document.addEventListener("keydown", (e) => {
         removeEnemy(enemyIndex);
         checkAllEnemiesCleared();
       });
-    } else if (type === "araiteki") {
-      setStatus("⚔ 荒れた敵（araiteki）が襲ってきた！");
-      takeDamage(1, setStatus);
-      removeEnemy(enemyIndex);
+    } else if (type === "araiguma") { // 🦝 アライグマ
+      setStatus("🦝 アライグマに遭遇！新潟ハードクイズに挑戦！");
+      startNiigataHardQuiz((correct) => {
+        if (correct) heal(1, setStatus);
+        else takeDamage(1, setStatus);
+        setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
+        removeEnemy(enemyIndex);
+        checkAllEnemiesCleared();
+      });
     }
-    checkAllEnemiesCleared(); // 🆕 全滅判定
+    checkAllEnemiesCleared();
   });
 
   if (checkGameOver(player, setStatus)) {
@@ -286,7 +292,7 @@ function draw() {
       }
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
-      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile);
+      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // アライグマ
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -328,7 +334,7 @@ window.startGame = function () {
 
   if (bgm) {
     bgm.volume = 0.5;
-    bgm.play().catch(err => console.log("BGM再生エラー:", err));
+    bgm.play().catch(()=>{});
   }
   draw();
 };
