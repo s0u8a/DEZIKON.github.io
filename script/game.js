@@ -90,12 +90,11 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// 🚶 移動可能判定
-function walkable(x, y) {
-  if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
-  const cell = map[y][x];
-  return cell !== "#" && cell !== "T" && cell !== "W" && cell !== "N";
-}
+// currentMapIndex を操作するための getter/setter オブジェクト（ending.nextMap に渡す）
+const currentMapIndexRef = {
+  get: () => currentMapIndex,
+  set: (v) => { currentMapIndex = v; }
+};
 
 // ▶ プレイヤー初期化
 function resetPlayer() {
@@ -116,6 +115,7 @@ function onTile(x, y) {
 
 // 🆕 敵全滅チェック（特殊エンディング）
 function checkAllEnemiesCleared() {
+  // 「最終マップ（index 3）」を条件にしています — 必要なら柔軟に変えてください
   if (currentMapIndex === 3 && enemies.length === 0 && !gameOver && !endingRef.value) {
     triggerSpecialEnding({ setStatus, bgm, endingRef });
   }
@@ -158,15 +158,33 @@ document.addEventListener("keydown", (e) => {
     return;
   } else return;
 
+  // 移動可能かチェック
   if (walkable(nx, ny)) {
     player.x = nx;
     player.y = ny;
 
+    // ゴール判定（プレイヤーが移動した後の tile をチェック）
     if (checkGoal(map, player.x, player.y)) {
       setStatus("🏁 ゴール！");
-      nextMap({ MAPS: maps, currentMapIndexRef: { value: currentMapIndex }, setStatus, reloadMap, bgm, endingRef });
+      // nextMap に currentMapIndexRef (getter/setter) と reloadMap を渡す
+      nextMap({
+        MAPS: maps,
+        currentMapIndexRef,
+        setStatus,
+        reloadMap: (newIndex) => {
+          // reloadMap は nextMap から次の index を受け取るのでここで本体を更新して準備
+          currentMapIndex = newIndex;
+          map = maps[currentMapIndex].map(row => [...row]);
+          resetPlayer();
+          initEnemies(map);
+          resizeCanvas();
+        },
+        bgm,
+        endingRef
+      });
       return;
     }
+
     onTile(nx, ny);
 
     if (map[player.y][player.x] === "I") {
@@ -200,6 +218,7 @@ document.addEventListener("keydown", (e) => {
         checkAllEnemiesCleared();
       });
     }
+    // 通常敵を倒しても特殊エンディング条件を満たしているか確認
     checkAllEnemiesCleared();
   });
 
@@ -210,8 +229,9 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ▶ マップリロード
-function reloadMap() {
+// ▶ マップリロード（汎用。nextMap の reloadMap にも使える）
+function reloadMap(newIndex) {
+  currentMapIndex = newIndex;
   map = maps[currentMapIndex].map(row => [...row]);
   resetPlayer();
   initEnemies(map);
@@ -239,6 +259,7 @@ function restartGame() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // エンディング表示（種類ごとに画像を分ける）
   if (endingRef.value === "normal") {
     ctx.drawImage(images.clear, 0, 0, canvas.width / dpr, canvas.height / dpr);
     ctx.font = "40px sans-serif";
@@ -271,6 +292,7 @@ function draw() {
     return;
   }
 
+  // マップ描画
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
       const dx = x * tile;
@@ -287,7 +309,7 @@ function draw() {
       if (cell === "S") ctx.drawImage(images.allyFishing, dx, dy, tile, tile);
       if (cell === "G") {
         if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
-        else ctx.drawImage(images.wall, dx, dy, tile, tile);
+        else ctx.drawImage(images.goal, dx, dy, tile, tile);
       }
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
