@@ -82,11 +82,12 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// 🚶 移動可能判定
+// 🚶 移動可能判定（修正：N を壁判定に追加）
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
-  return cell !== "#" && cell !== "T" && cell !== "W";
+  // "#" (通常壁), "T" (木), "W" (特別壁), "N" (入口) を通れないようにする
+  return cell !== "#" && cell !== "T" && cell !== "W" && cell !== "N";
 }
 
 // ▶ プレイヤー完全リセット
