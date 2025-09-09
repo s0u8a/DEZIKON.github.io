@@ -42,9 +42,9 @@ const images = {
   heart: new Image(),
   bridge: new Image(),
   tree: new Image(),
-  clear: new Image(),
+  clear: new Image(),     // ノーマルエンディング用
   over: new Image(),
-  sadometu: new Image()
+  sadometu: new Image()   // 特殊エンディング用
 };
 
 // 🖼 画像読み込み
@@ -77,6 +77,8 @@ let nearAlly = false;
 let nearFishingAlly = false;
 let gameCleared = false;
 let gameOver = false;
+// endingType: null | "normal" | "special"
+let endingType = null;
 
 // 🖼 キャンバスリサイズ
 const dpr = window.devicePixelRatio || 1;
@@ -106,13 +108,30 @@ function resetPlayer() {
 
 // ➡ 次マップへ
 function nextMap() {
-  currentMapIndex++;
-  if (currentMapIndex >= maps.length) {
-    setStatus("🎉 全クリア！！");
-    if (bgm) bgm.pause();
-    gameCleared = true;
+  // もし「現在」が最終マップ（最後のインデックス）なら、G 到達はノーマルエンディングとする
+  if (currentMapIndex === maps.length - 1) {
+    if (!gameCleared && !gameOver) {
+      endingType = "normal";
+      setStatus("🏁 ノーマルエンディング！新潟の旅は続く…");
+      if (bgm) bgm.pause();
+      gameCleared = true;
+    }
     return;
   }
+
+  // それ以外は次のマップへ進行
+  currentMapIndex++;
+  if (currentMapIndex >= maps.length) {
+    // 念のための保険（通常ここには来ない）
+    if (!gameCleared && !gameOver) {
+      endingType = "normal";
+      setStatus("🎉 全クリア！！");
+      if (bgm) bgm.pause();
+      gameCleared = true;
+    }
+    return;
+  }
+
   map = maps[currentMapIndex].map(row => [...row]);
   resetPlayer();
   initEnemies(map);
@@ -147,10 +166,12 @@ function onTile(x, y) {
   if (nearFishingAlly) setStatus("🎣 釣り好きの村人がいる！Enterで話しかけてください");
 }
 
-// 🆕 敵全滅チェック
+// 🆕 敵全滅チェック（特殊エンディング）
 function checkAllEnemiesCleared() {
+  // 4マップ目（index 3）で敵がゼロになったら特殊エンディング
   if (currentMapIndex === 3 && enemies.length === 0 && !gameCleared && !gameOver) {
-    setStatus("🎉 敵を全滅させ、佐渡を鎮めました！");
+    endingType = "special";
+    setStatus("✨ 特殊エンディング！敵を全滅させ、佐渡を鎮めました！");
     if (bgm) bgm.pause();
     gameCleared = true;
   }
@@ -235,6 +256,7 @@ document.addEventListener("keydown", (e) => {
         checkAllEnemiesCleared();
       });
     }
+    // 通常エネミーを倒した後もチェック（念のため）
     checkAllEnemiesCleared();
   });
 
@@ -255,6 +277,7 @@ function restartGame() {
   setStatus("🔄 ゲーム再スタート！");
   gameCleared = false;
   gameOver = false;
+  endingType = null;
   if (bgm) {
     bgm.currentTime = 0;
     bgm.play().catch(()=>{});
@@ -266,12 +289,23 @@ function restartGame() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // ゲームクリア（エンディング）表示：endingType に応じて差し替え
   if (gameCleared) {
-    ctx.drawImage(images.sadometu, 0, 0, canvas.width / dpr, canvas.height / dpr);
-    ctx.font = "40px sans-serif";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.fillText("🎉 ゲームクリア！", canvas.width / dpr / 2, 50);
+    if (endingType === "special") {
+      // 特殊エンディング表示（敵全滅）
+      ctx.drawImage(images.sadometu, 0, 0, canvas.width / dpr, canvas.height / dpr);
+      ctx.font = "40px sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.fillText("✨ 特殊エンディング！佐渡を鎮めた！", canvas.width / dpr / 2, 50);
+    } else {
+      // ノーマルエンディング表示（G 到達）
+      ctx.drawImage(images.clear, 0, 0, canvas.width / dpr, canvas.height / dpr);
+      ctx.font = "40px sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.fillText("🎉 ノーマルエンディング！", canvas.width / dpr / 2, 50);
+    }
     return;
   }
 
