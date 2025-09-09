@@ -4,8 +4,7 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy, enemies } from ".
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js"; 
-import { startNiigataHardQuiz } from "./startNiigataHardQuiz.js"; // 🆕 高難易度クイズ
+import { startNiigataQuiz } from "./niigataquiz.js";
 
 // 🎮 キャンバス設定
 const canvas = document.getElementById("gameCanvas");
@@ -53,7 +52,7 @@ images.wall.src = "./assets/images/mizu_big.png";
 images.wallSpecial.src = "./assets/images/isikabe.png";
 images.enemy.src = "./assets/images/enemy.png";
 images.enemy2.src = "./assets/images/kaeru.png";
-images.enemy3.src = "./assets/images/araiguma.png"; // 🦝 アライグマ
+images.enemy3.src = "./assets/images/araiteki.png";
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.allyFishing.src = "./assets/images/turibito.png";
@@ -75,7 +74,7 @@ let currentMapIndex = 0;
 let map = maps[currentMapIndex].map(row => [...row]);
 let nearAlly = false;
 let nearFishingAlly = false;
-let gameCleared = false;
+let gameCleared = false; // false / true / "sado"
 let gameOver = false;
 
 // 🖼 キャンバスリサイズ
@@ -104,8 +103,23 @@ function resetPlayer() {
   player.invincibleTime = 0;
 }
 
-// ➡ 次マップ
+// ➡ 次マップ or 佐渡クリア
 function nextMap() {
+  // マップ4の敵全滅チェック
+  if (currentMapIndex === 3) {
+    if (enemies.length === 0) {
+      setStatus("🎉 敵を全滅させ、佐渡を鎮めました！");
+      if (bgm) bgm.pause();
+      gameCleared = "sado"; // 佐渡エンディング
+      return;
+    } else {
+      setStatus("🏁 ゴール！通常クリア");
+      if (bgm) bgm.pause();
+      gameCleared = true;
+      return;
+    }
+  }
+
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
     setStatus("🎉 全クリア！！");
@@ -113,6 +127,7 @@ function nextMap() {
     gameCleared = true;
     return;
   }
+
   map = maps[currentMapIndex].map(row => [...row]);
   resetPlayer();
   initEnemies(map);
@@ -128,15 +143,6 @@ function onTile(x, y) {
 
   if (nearAlly) setStatus("🤝 村人がいる！Enterで話しかけてください");
   if (nearFishingAlly) setStatus("🎣 釣り好きの村人がいる！Enterで話しかけてください");
-}
-
-// 🆕 敵全滅チェック（マップ4）
-function checkAllEnemiesCleared() {
-  if (currentMapIndex === 3 && enemies.length === 0 && !gameCleared && !gameOver) {
-    setStatus("🎉 敵を全滅させ、佐渡を鎮めました！");
-    if (bgm) bgm.pause();
-    gameCleared = true;
-  }
 }
 
 // ⌨️ キー操作
@@ -206,25 +212,22 @@ document.addEventListener("keydown", (e) => {
         else takeDamage(1, setStatus);
         setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
         removeEnemy(enemyIndex);
-        checkAllEnemiesCleared();
       });
-    } else if (type === "araiguma") { // 🦝 アライグマ
-      setStatus("🦝 アライグマに遭遇！新潟ハードクイズに挑戦！");
-      startNiigataHardQuiz((correct) => {
-        if (correct) heal(1, setStatus);
-        else takeDamage(1, setStatus);
-        setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
-        removeEnemy(enemyIndex);
-        checkAllEnemiesCleared();
-      });
+    } else if (type === "araiteki") {
+      setStatus("⚔ 荒れた敵（araiteki）が襲ってきた！");
+      takeDamage(1, setStatus);
+      removeEnemy(enemyIndex);
     }
-    checkAllEnemiesCleared();
   });
+
+  // マップ4全滅チェック（敵ゼロなら佐渡エンディングの準備）
+  if (currentMapIndex === 3 && enemies.length === 0 && !gameCleared) {
+    setStatus("🎉 敵を全滅させました！");
+  }
 
   if (checkGameOver(player, setStatus)) {
     if (bgm) bgm.pause();
     gameOver = true;
-    return;
   }
 });
 
@@ -250,11 +253,19 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (gameCleared) {
-    ctx.drawImage(images.sadometu, 0, 0, canvas.width / dpr, canvas.height / dpr);
-    ctx.font = "40px sans-serif";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.fillText("🎉 ゲームクリア！", canvas.width / dpr / 2, 50);
+    if (gameCleared === "sado") {
+      ctx.drawImage(images.sadometu, 0, 0, canvas.width / dpr, canvas.height / dpr);
+      ctx.font = "40px sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.fillText("🎉 佐渡鎮めクリア！", canvas.width / dpr / 2, 50);
+    } else {
+      ctx.drawImage(images.clear, 0, 0, canvas.width / dpr, canvas.height / dpr);
+      ctx.font = "40px sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.fillText("🎉 ゲームクリア！", canvas.width / dpr / 2, 50);
+    }
     return;
   }
 
@@ -292,7 +303,7 @@ function draw() {
       }
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
-      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // アライグマ
+      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile);
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -334,7 +345,7 @@ window.startGame = function () {
 
   if (bgm) {
     bgm.volume = 0.5;
-    bgm.play().catch(()=>{});
+    bgm.play().catch(err => console.log("BGM再生エラー:", err));
   }
   draw();
 };
