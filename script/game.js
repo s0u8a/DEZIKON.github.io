@@ -117,7 +117,24 @@ function nextMap() {
   resetPlayer();
   initEnemies(map);
   resizeCanvas();
-  setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
+
+  // マップごとの専用メッセージ
+  switch (currentMapIndex) {
+    case 0:
+      setStatus("🌾 マップ1：田んぼエリアに到着！");
+      break;
+    case 1:
+      setStatus("🌊 マップ2：信濃川の流域に突入！");
+      break;
+    case 2:
+      setStatus("🏔 マップ3：山間部の里に入った！");
+      break;
+    case 3:
+      setStatus("⛏ マップ4：佐渡金山の地下坑道に潜入！");
+      break;
+    default:
+      setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
+  }
 }
 
 // 👤 プレイヤーが立っているタイル判定
@@ -332,7 +349,9 @@ window.startGame = function () {
   resetPlayer();
   initEnemies(map);
   resizeCanvas();
-  setStatus("✅ ゲーム開始");
+
+  // ゲーム開始専用メッセージ
+  setStatus("🌾 マップ1：田んぼエリアに到着！");
 
   if (bgm) {
     bgm.volume = 0.5;
