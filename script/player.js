@@ -44,7 +44,7 @@ export function updatePlayer() {
 // 🆕 右上にハートを横並びで描画（鼓動付き）
 export function drawLifeGauge(ctx, heartImg, tile, player) {
   const padding = 10;   // 右上からの余白
-  const heartSize = 20; // ハートのサイズ
+  const heartSize = 32; // ハートのサイズ
   const dpr = window.devicePixelRatio || 1;
   const canvasWidth = ctx.canvas.width / dpr;
 
