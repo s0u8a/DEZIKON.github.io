@@ -14,7 +14,7 @@ export function initEnemies(GRID) {
       } else if (GRID[y][x] === "H") {
         // 🆕 H -> araiteki 敵
         enemies.push({ x, y, dx: 1, dy: 0, type: "araiteki" });
-        GRID[y][x] = "K"; // 床は専用タイルに置き換え
+        GRID[y][x] = "0"; // 床は専用タイルに置き換え
       }
     }
   }
