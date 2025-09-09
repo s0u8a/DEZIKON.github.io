@@ -1,10 +1,10 @@
 import { maps, tile } from "./map.js";
 import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } from "./player.js";
-import { initEnemies, updateEnemies, drawEnemies, removeEnemy } from "./enemy.js";
+import { initEnemies, updateEnemies, drawEnemies, removeEnemy, enemies } from "./enemy.js";
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js"; // 🆕 新潟クイズ
+import { startNiigataQuiz } from "./niigataquiz.js";
 
 // 🎮 キャンバス設定
 const canvas = document.getElementById("gameCanvas");
@@ -18,7 +18,7 @@ function setStatus(msg) {
   console.log(msg);
 }
 
-// 🎵 BGM要素取得
+// 🎵 BGM
 const bgm = document.getElementById("bgm");
 
 // 🎨 画像管理
@@ -28,10 +28,10 @@ const images = {
   wallSpecial: new Image(),
   enemy: new Image(),
   enemy2: new Image(),
-  enemy3: new Image(), // 🆕 araiteki 用画像
+  enemy3: new Image(),
   item: new Image(),
-  ally: new Image(),        // 卵村人
-  allyFishing: new Image(), // 🎣 釣り村人
+  ally: new Image(),
+  allyFishing: new Image(),
   goal: new Image(),
   goalEntrance: new Image(),
   entrance: new Image(),
@@ -42,19 +42,20 @@ const images = {
   bridge: new Image(),
   tree: new Image(),
   clear: new Image(),
-  over: new Image()
+  over: new Image(),
+  sadometu: new Image(), // 🆕 敵全滅エンディング
 };
 
-// 🖼 画像の読み込み
+// 🖼 画像読み込み
 images.floor.src = "./assets/images/tanbo3.png";
 images.wall.src = "./assets/images/mizu_big.png";
 images.wallSpecial.src = "./assets/images/isikabe.png";
 images.enemy.src = "./assets/images/enemy.png";
 images.enemy2.src = "./assets/images/kaeru.png";
-images.enemy3.src = "./assets/images/araiteki.png"; // 🆕 追加
+images.enemy3.src = "./assets/images/araiteki.png";
 images.item.src = "./assets/images/komebukuro.png";
-images.ally.src = "./assets/images/murabitopng.png";   // 卵村人
-images.allyFishing.src = "./assets/images/turibito.png"; // 🎣 釣り村人
+images.ally.src = "./assets/images/murabitopng.png";
+images.allyFishing.src = "./assets/images/turibito.png";
 images.goal.src = "./assets/images/kakasi2.png";
 images.goalEntrance.src = "./assets/images/koudouiriguti.png";
 images.entrance.src = "./assets/images/kintin.png";
@@ -66,16 +67,17 @@ images.bridge.src = "./assets/images/hasihasii.png";
 images.tree.src = "./assets/images/kinokabe.png";
 images.clear.src = "./assets/images/clear.png";
 images.over.src = "./assets/images/over.png";
+images.sadometu.src = "./assets/images/sadometu.png";
 
 // 🌍 マップ状態
 let currentMapIndex = 0;
 let map = maps[currentMapIndex].map(row => [...row]);
 let nearAlly = false;
-let nearFishingAlly = false; // 🎣 釣り村人
+let nearFishingAlly = false;
 let gameCleared = false;
 let gameOver = false;
 
-// 🖼 キャンバスのリサイズ
+// 🖼 キャンバスリサイズ
 const dpr = window.devicePixelRatio || 1;
 function resizeCanvas() {
   canvas.width = map[0].length * tile * dpr;
@@ -87,21 +89,21 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// 🚶 移動可能判定（N を壁判定に追加）
+// 🚶 移動判定
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
   return cell !== "#" && cell !== "T" && cell !== "W" && cell !== "N";
 }
 
-// ▶ プレイヤー完全リセット
+// ▶ プレイヤーリセット
 function resetPlayer() {
   initPlayer(map);
   player.hearts = player.maxHearts;
   player.invincibleTime = 0;
 }
 
-// ➡ 次マップへ
+// ➡ 次マップ
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
@@ -120,11 +122,20 @@ function nextMap() {
 // 👤 プレイヤーが立っているタイル処理
 function onTile(x, y) {
   const cell = map[y][x];
-  nearAlly = cell === "A";        // 卵村人
-  nearFishingAlly = cell === "S"; // 🎣 釣り村人
+  nearAlly = cell === "A";
+  nearFishingAlly = cell === "S";
 
   if (nearAlly) setStatus("🤝 村人がいる！Enterで話しかけてください");
   if (nearFishingAlly) setStatus("🎣 釣り好きの村人がいる！Enterで話しかけてください");
+}
+
+// 🆕 敵全滅チェック（マップ4）
+function checkAllEnemiesCleared() {
+  if (currentMapIndex === 3 && enemies.length === 0 && !gameCleared && !gameOver) {
+    setStatus("🎉 敵を全滅させ、佐渡を鎮めました！");
+    if (bgm) bgm.pause();
+    gameCleared = true;
+  }
 }
 
 // ⌨️ キー操作
@@ -137,7 +148,6 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
-    // 🥚 卵つぶし村人
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
@@ -150,7 +160,6 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   else if (e.key === "Enter" && nearFishingAlly) {
-    // 🎣 釣り村人
     setStatus("💬 村人『信濃川の外来魚を釣って退治してくれ！』");
     setTimeout(() => {
       startFishingGame((score) => {
@@ -164,8 +173,7 @@ document.addEventListener("keydown", (e) => {
       nearFishingAlly = false;
     }, 1500);
     return;
-  }
-  else return;
+  } else return;
 
   if (walkable(nx, ny)) {
     player.x = nx;
@@ -185,7 +193,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 敵との接触処理
+  // 敵接触処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
       takeDamage(amt, setStatus);
@@ -197,13 +205,14 @@ document.addEventListener("keydown", (e) => {
         else takeDamage(1, setStatus);
         setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
         removeEnemy(enemyIndex);
+        checkAllEnemiesCleared();
       });
     } else if (type === "araiteki") {
-      // 🆕 荒敵
       setStatus("⚔ 荒れた敵（araiteki）が襲ってきた！");
       takeDamage(1, setStatus);
       removeEnemy(enemyIndex);
     }
+    checkAllEnemiesCleared(); // 🆕 全滅判定
   });
 
   if (checkGameOver(player, setStatus)) {
@@ -213,7 +222,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ▶ リスタート関数
+// ▶ リスタート
 function restartGame() {
   currentMapIndex = 0;
   map = maps[currentMapIndex].map(row => [...row]);
@@ -230,18 +239,21 @@ function restartGame() {
   draw();
 }
 
-// 🎨 描画処理
+// 🎨 描画
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (gameCleared) {
-    ctx.drawImage(images.clear, 0, 0, canvas.width / dpr, canvas.height / dpr);
+    ctx.drawImage(images.sadometu, 0, 0, canvas.width / dpr, canvas.height / dpr);
+    ctx.font = "40px sans-serif";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.fillText("🎉 ゲームクリア！", canvas.width / dpr / 2, 50);
     return;
   }
 
   if (gameOver) {
     ctx.drawImage(images.over, 0, 0, canvas.width / dpr, canvas.height / dpr);
-
     const btnW = 200, btnH = 50;
     const btnX = (canvas.width / dpr - btnW) / 2;
     const btnY = canvas.height / dpr * 0.7;
@@ -267,16 +279,14 @@ function draw() {
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
-      if (cell === "S") ctx.drawImage(images.allyFishing, dx, dy, tile, tile); // 🎣 釣り村人
-
+      if (cell === "S") ctx.drawImage(images.allyFishing, dx, dy, tile, tile);
       if (cell === "G") {
         if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
         else ctx.drawImage(images.goal, dx, dy, tile, tile);
       }
-
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
-      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // 🆕 araiteki
+      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile);
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -285,7 +295,6 @@ function draw() {
     }
   }
 
-  // 🆕 敵描画：enemy, enemy2, enemy3 を渡す
   drawEnemies(ctx, images.enemy, images.enemy2, images.enemy3, tile, 0, 0, map[0].length * tile, map.length * tile);
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
@@ -294,13 +303,12 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-// 🖱 Restartクリック処理
+// 🖱 Restart
 canvas.addEventListener("click", (e) => {
   if (!gameOver) return;
   const rect = canvas.getBoundingClientRect();
   const x = (e.clientX - rect.left) * dpr;
   const y = (e.clientY - rect.top) * dpr;
-
   const btnW = 200, btnH = 50;
   const btnX = (canvas.width / dpr - btnW) / 2 * dpr;
   const btnY = canvas.height * 0.7;
