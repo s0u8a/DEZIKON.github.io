@@ -4,8 +4,8 @@ import { initEnemies, updateEnemies, drawEnemies, removeEnemy, enemies } from ".
 import { checkGoal, checkGameOver } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
-import { startNiigataQuiz } from "./niigataquiz.js"; 
-import { startNiigataHardQuiz } from "./startNiigataHardQuiz.js"; // 🆕 高難易度クイズ
+import { startNiigataQuiz } from "./niigataquiz.js";          // 🐸 カエル用
+import { startNiigataHardQuiz } from "./startNiigataHardQuiz.js"; // 🦝 アライグマ用
 
 // 🎮 キャンバス設定
 const canvas = document.getElementById("gameCanvas");
@@ -29,7 +29,7 @@ const images = {
   wallSpecial: new Image(),
   enemy: new Image(),
   enemy2: new Image(),
-  enemy3: new Image(),
+  enemy3: new Image(), // アライグマ
   item: new Image(),
   ally: new Image(),
   allyFishing: new Image(),
@@ -44,7 +44,7 @@ const images = {
   tree: new Image(),
   clear: new Image(),
   over: new Image(),
-  sadometu: new Image(),
+  sadometu: new Image()
 };
 
 // 🖼 画像読み込み
@@ -70,7 +70,7 @@ images.clear.src = "./assets/images/clear.png";
 images.over.src = "./assets/images/over.png";
 images.sadometu.src = "./assets/images/sadometu.png";
 
-// 🌍 マップ状態
+// 🌍 ゲーム状態
 let currentMapIndex = 0;
 let map = maps[currentMapIndex].map(row => [...row]);
 let nearAlly = false;
@@ -90,21 +90,21 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// 🚶 移動判定
+// 🚶 移動可能判定
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
   return cell !== "#" && cell !== "T" && cell !== "W" && cell !== "N";
 }
 
-// ▶ プレイヤーリセット
+// ▶ プレイヤー初期化
 function resetPlayer() {
   initPlayer(map);
   player.hearts = player.maxHearts;
   player.invincibleTime = 0;
 }
 
-// ➡ 次マップ
+// ➡ 次マップへ
 function nextMap() {
   currentMapIndex++;
   if (currentMapIndex >= maps.length) {
@@ -120,7 +120,7 @@ function nextMap() {
   setStatus(`➡ マップ${currentMapIndex + 1} へ進んだ！`);
 }
 
-// 👤 プレイヤーが立っているタイル処理
+// 👤 プレイヤーが立っているタイル判定
 function onTile(x, y) {
   const cell = map[y][x];
   nearAlly = cell === "A";
@@ -130,7 +130,7 @@ function onTile(x, y) {
   if (nearFishingAlly) setStatus("🎣 釣り好きの村人がいる！Enterで話しかけてください");
 }
 
-// 🆕 敵全滅チェック（マップ4）
+// 🆕 敵全滅チェック
 function checkAllEnemiesCleared() {
   if (currentMapIndex === 3 && enemies.length === 0 && !gameCleared && !gameOver) {
     setStatus("🎉 敵を全滅させ、佐渡を鎮めました！");
@@ -194,7 +194,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 敵接触処理
+  // 敵との接触処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
       takeDamage(amt, setStatus);
@@ -208,8 +208,8 @@ document.addEventListener("keydown", (e) => {
         removeEnemy(enemyIndex);
         checkAllEnemiesCleared();
       });
-    } else if (type === "araiguma") { // 🦝 アライグマ
-      setStatus("🦝 アライグマに遭遇！新潟ハードクイズに挑戦！");
+    } else if (type === "araiteki") {
+      setStatus("🦝 アライグマに遭遇！高難易度クイズに挑戦！");
       startNiigataHardQuiz((correct) => {
         if (correct) heal(1, setStatus);
         else takeDamage(1, setStatus);
@@ -228,7 +228,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ▶ リスタート
+// ▶ リスタート処理
 function restartGame() {
   currentMapIndex = 0;
   map = maps[currentMapIndex].map(row => [...row]);
@@ -292,7 +292,7 @@ function draw() {
       }
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
-      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // アライグマ
+      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // 🦝 アライグマ
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -309,7 +309,7 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-// 🖱 Restart
+// 🖱 Restart ボタン処理
 canvas.addEventListener("click", (e) => {
   if (!gameOver) return;
   const rect = canvas.getBoundingClientRect();
@@ -334,7 +334,7 @@ window.startGame = function () {
 
   if (bgm) {
     bgm.volume = 0.5;
-    bgm.play().catch(()=>{});
+    bgm.play().catch(err => console.log("BGM再生エラー:", err));
   }
   draw();
 };
