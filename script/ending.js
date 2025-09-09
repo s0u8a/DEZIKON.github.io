@@ -1,38 +1,37 @@
 // script/ending.js
 
-// ゴールタイル判定
+// ゴール判定
 export function checkGoal(GRID, x, y) {
   return GRID[y][x] === "G";
 }
 
-// ノーマルエンディング発動
+// ノーマルエンディング
 export function triggerNormalEnding(state) {
   const { setStatus, bgm, endingRef } = state;
   if (bgm) bgm.pause();
-  if (typeof setStatus === "function") setStatus("🎉 全マップクリア！！");
-  endingRef.value = "normal"; // ノーマルエンディング
+  if (typeof setStatus === "function") setStatus("🎉 ノーマルエンディング！");
+  endingRef.value = "normal";
 }
 
-// 特殊エンディング発動
+// 特殊エンディング
 export function triggerSpecialEnding(state) {
   const { setStatus, bgm, endingRef } = state;
   if (bgm) bgm.pause();
-  if (typeof setStatus === "function") setStatus("🎉 敵を全滅させ、佐渡を鎮めました！");
-  endingRef.value = "special"; // 特殊エンディング
+  if (typeof setStatus === "function") setStatus("✨ 特殊エンディング！敵を全滅させ、佐渡を鎮めました！");
+  endingRef.value = "special";
 }
 
-// マップ移動処理
+// マップ進行
 export function nextMap(state) {
   const { MAPS, currentMapIndexRef, setStatus, reloadMap } = state;
 
-  if (currentMapIndexRef.value + 1 < MAPS.length) {
-    currentMapIndexRef.value++;
-    if (typeof reloadMap === "function") reloadMap();
+  if (currentMapIndexRef.get() + 1 < MAPS.length) {
+    currentMapIndexRef.set(currentMapIndexRef.get() + 1);
+    if (typeof reloadMap === "function") reloadMap(currentMapIndexRef.get());
     if (typeof setStatus === "function") {
-      setStatus(`🌍 マップ ${currentMapIndexRef.value + 1} に移動！`);
+      setStatus(`🌍 マップ ${currentMapIndexRef.get() + 1} に移動！`);
     }
   } else {
-    // 最終マップを超えた → ノーマルエンディング
     triggerNormalEnding(state);
   }
 }
