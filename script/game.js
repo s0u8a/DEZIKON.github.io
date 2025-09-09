@@ -287,7 +287,7 @@ function draw() {
       if (cell === "S") ctx.drawImage(images.allyFishing, dx, dy, tile, tile);
       if (cell === "G") {
         if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
-        else ctx.drawImage(images.goal, dx, dy, tile, tile);
+        else ctx.drawImage(images.wall, dx, dy, tile, tile);
       }
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
