@@ -30,7 +30,8 @@ const images = {
   enemy2: new Image(),
   enemy3: new Image(), // 🆕 araiteki 用画像
   item: new Image(),
-  ally: new Image(),
+  ally: new Image(),        // 卵村人
+  allyFishing: new Image(), // 🎣 釣り村人
   goal: new Image(),
   goalEntrance: new Image(),
   entrance: new Image(),
@@ -52,7 +53,8 @@ images.enemy.src = "./assets/images/enemy.png";
 images.enemy2.src = "./assets/images/kaeru.png";
 images.enemy3.src = "./assets/images/araiteki.png"; // 🆕 追加
 images.item.src = "./assets/images/komebukuro.png";
-images.ally.src = "./assets/images/murabitopng.png";
+images.ally.src = "./assets/images/murabitopng.png";   // 卵村人
+images.allyFishing.src = "./assets/images/turibito.png"; // 🎣 釣り村人
 images.goal.src = "./assets/images/kakasi2.png";
 images.goalEntrance.src = "./assets/images/koudouiriguti.png";
 images.entrance.src = "./assets/images/kintin.png";
@@ -69,6 +71,7 @@ images.over.src = "./assets/images/over.png";
 let currentMapIndex = 0;
 let map = maps[currentMapIndex].map(row => [...row]);
 let nearAlly = false;
+let nearFishingAlly = false; // 🎣 釣り村人
 let gameCleared = false;
 let gameOver = false;
 
@@ -88,14 +91,13 @@ resizeCanvas();
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
-  // "#" (通常壁), "T" (木), "W" (特別壁), "N" (入口) を通れないようにする
   return cell !== "#" && cell !== "T" && cell !== "W" && cell !== "N";
 }
 
 // ▶ プレイヤー完全リセット
 function resetPlayer() {
   initPlayer(map);
-  player.hearts = player.maxHearts; // ✅ HP満タンに
+  player.hearts = player.maxHearts;
   player.invincibleTime = 0;
 }
 
@@ -118,8 +120,11 @@ function nextMap() {
 // 👤 プレイヤーが立っているタイル処理
 function onTile(x, y) {
   const cell = map[y][x];
-  nearAlly = cell === "A";
+  nearAlly = cell === "A";        // 卵村人
+  nearFishingAlly = cell === "S"; // 🎣 釣り村人
+
   if (nearAlly) setStatus("🤝 村人がいる！Enterで話しかけてください");
+  if (nearFishingAlly) setStatus("🎣 釣り好きの村人がいる！Enterで話しかけてください");
 }
 
 // ⌨️ キー操作
@@ -132,6 +137,7 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") nx--;
   else if (e.key === "ArrowRight") nx++;
   else if (e.key === "Enter" && nearAlly) {
+    // 🥚 卵つぶし村人
     setStatus("💬 村人『田んぼを荒らすジャンボタニシの卵をつぶしてくれ！』");
     setTimeout(() => {
       startEggGame((score) => {
@@ -142,7 +148,24 @@ document.addEventListener("keydown", (e) => {
       nearAlly = false;
     }, 1500);
     return;
-  } else return;
+  }
+  else if (e.key === "Enter" && nearFishingAlly) {
+    // 🎣 釣り村人
+    setStatus("💬 村人『信濃川の外来魚を釣って退治してくれ！』");
+    setTimeout(() => {
+      startFishingGame((score) => {
+        if (score >= 10) heal(1, setStatus);
+        else if (score <= 0) takeDamage(1, setStatus);
+        setStatus(score >= 10 ? `🐟 ブラックバスを ${score} 匹釣った！HP回復！`
+                  : score <= 0 ? `❌ ブラックバスが少なすぎる…外道ばかり！HP減少`
+                  : `🎣 釣果: ブラックバス ${score}匹`);
+      });
+      map[player.y][player.x] = "0";
+      nearFishingAlly = false;
+    }, 1500);
+    return;
+  }
+  else return;
 
   if (walkable(nx, ny)) {
     player.x = nx;
@@ -162,23 +185,11 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 敵との接触処理コールバック（araiteki を追加）
+  // 敵との接触処理
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
-      if (currentMapIndex === 1) {
-        takeDamage(amt, setStatus);
-        startFishingGame((score) => {
-          if (score >= 10) heal(1, setStatus);
-          else if (score <= 0) takeDamage(1, setStatus);
-          setStatus(score >= 10 ? `🐟 ブラックバスを ${score} 匹釣った！HP回復！`
-                    : score <= 0 ? `❌ ブラックバスが少なすぎる…外道ばかり！HP減少`
-                    : `🎣 釣果: ブラックバス ${score}匹`);
-          removeEnemy(enemyIndex);
-        });
-      } else {
-        takeDamage(amt, setStatus);
-        removeEnemy(enemyIndex);
-      }
+      takeDamage(amt, setStatus);
+      removeEnemy(enemyIndex);
     } else if (type === "frog") {
       setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
       startNiigataQuiz((correct) => {
@@ -188,9 +199,9 @@ document.addEventListener("keydown", (e) => {
         removeEnemy(enemyIndex);
       });
     } else if (type === "araiteki") {
-      // 🆕 「荒敵」遭遇時の処理
+      // 🆕 荒敵
       setStatus("⚔ 荒れた敵（araiteki）が襲ってきた！");
-      takeDamage(1, setStatus); // ダメージ量は必要に応じて調整
+      takeDamage(1, setStatus);
       removeEnemy(enemyIndex);
     }
   });
@@ -256,6 +267,7 @@ function draw() {
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
       if (cell === "A") ctx.drawImage(images.ally, dx, dy, tile, tile);
+      if (cell === "S") ctx.drawImage(images.allyFishing, dx, dy, tile, tile); // 🎣 釣り村人
 
       if (cell === "G") {
         if (currentMapIndex === 3) ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -264,7 +276,7 @@ function draw() {
 
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
-      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // 🆕 H (araiteki)
+      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // 🆕 araiteki
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -273,7 +285,7 @@ function draw() {
     }
   }
 
-  // drawEnemies に araiteki 用画像も渡す（第三引数）
+  // 🆕 敵描画：enemy, enemy2, enemy3 を渡す
   drawEnemies(ctx, images.enemy, images.enemy2, images.enemy3, tile, 0, 0, map[0].length * tile, map.length * tile);
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
