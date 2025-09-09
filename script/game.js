@@ -28,6 +28,7 @@ const images = {
   wallSpecial: new Image(),
   enemy: new Image(),
   enemy2: new Image(),
+  enemy3: new Image(), // 🆕 araiteki 用画像
   item: new Image(),
   ally: new Image(),
   goal: new Image(),
@@ -49,6 +50,7 @@ images.wall.src = "./assets/images/mizu_big.png";
 images.wallSpecial.src = "./assets/images/isikabe.png";
 images.enemy.src = "./assets/images/enemy.png";
 images.enemy2.src = "./assets/images/kaeru.png";
+images.enemy3.src = "./assets/images/araiteki.png"; // 🆕 追加
 images.item.src = "./assets/images/komebukuro.png";
 images.ally.src = "./assets/images/murabitopng.png";
 images.goal.src = "./assets/images/kakasi2.png";
@@ -82,7 +84,7 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// 🚶 移動可能判定（修正：N を壁判定に追加）
+// 🚶 移動可能判定（N を壁判定に追加）
 function walkable(x, y) {
   if (x < 0 || x >= map[0].length || y < 0 || y >= map.length) return false;
   const cell = map[y][x];
@@ -136,7 +138,7 @@ document.addEventListener("keydown", (e) => {
         if (score >= 10) heal(1, setStatus);
         setStatus(score >= 10 ? `🥚 卵を大量につぶした！HP回復！` : `🥚 卵つぶしスコア: ${score}`);
       });
-      map[player.y][player.x] = "0"; 
+      map[player.y][player.x] = "0";
       nearAlly = false;
     }, 1500);
     return;
@@ -160,6 +162,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
+  // 敵との接触処理コールバック（araiteki を追加）
   updateEnemies(walkable, player, (amt, enemyIndex, type) => {
     if (type === "normal") {
       if (currentMapIndex === 1) {
@@ -184,6 +187,11 @@ document.addEventListener("keydown", (e) => {
         setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
         removeEnemy(enemyIndex);
       });
+    } else if (type === "araiteki") {
+      // 🆕 「荒敵」遭遇時の処理
+      setStatus("⚔ 荒れた敵（araiteki）が襲ってきた！");
+      takeDamage(1, setStatus); // ダメージ量は必要に応じて調整
+      removeEnemy(enemyIndex);
     }
   });
 
@@ -256,6 +264,7 @@ function draw() {
 
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
+      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // 🆕 H (araiteki)
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -264,7 +273,8 @@ function draw() {
     }
   }
 
-  drawEnemies(ctx, images.enemy, images.enemy2, tile, 0, 0, map[0].length * tile, map.length * tile);
+  // drawEnemies に araiteki 用画像も渡す（第三引数）
+  drawEnemies(ctx, images.enemy, images.enemy2, images.enemy3, tile, 0, 0, map[0].length * tile, map.length * tile);
   ctx.drawImage(images.pl, player.x * tile, player.y * tile, tile, tile);
   drawLifeGauge(ctx, images.heart, tile, player);
 
@@ -292,7 +302,7 @@ window.startGame = function () {
   currentMapIndex = 0;
   map = maps[currentMapIndex].map(row => [...row]);
   resetPlayer();
-  initEnemies(map); 
+  initEnemies(map);
   resizeCanvas();
   setStatus("✅ ゲーム開始");
 
