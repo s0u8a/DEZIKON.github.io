@@ -1,53 +1,54 @@
-// script/ending.js
-
 // ゴール判定
 export function checkGoal(GRID, x, y) {
-  return GRID[y][x] === "G";
+  return GRID[y] && GRID[y][x] === "G";
 }
 
 // ノーマルエンディング
 export function triggerNormalEnding(state) {
-  const { setStatus, bgm, endingRef } = state;
-  if (bgm) bgm.pause();
-  if (typeof setStatus === "function") setStatus("🎉 ノーマルエンディング！");
-  endingRef.value = "normal";
+  const { setStatus, bgm, endingRef, setGameCleared } = state  {};
+  if (bgm && typeof bgm.pause === "function") bgm.pause();
+  if (typeof setStatus === "function") {
+    setStatus("🎉 ノーマルエンディング！ゴールに到達しました！");
+  }
+  if (endingRef) endingRef.value = "normal";
+  if (typeof setGameCleared === "function") setGameCleared(true);
 }
 
-// 特殊エンディング
+// 特殊エンディング（敵を全滅させた場合）
 export function triggerSpecialEnding(state) {
-  const { setStatus, bgm, endingRef } = state;
-  if (bgm) bgm.pause();
+  const { setStatus, bgm, endingRef, setGameCleared } = state  {};
+  if (bgm && typeof bgm.pause === "function") bgm.pause();
   if (typeof setStatus === "function") {
     setStatus("✨ 特殊エンディング！敵を全滅させ、佐渡を鎮めました！");
   }
-  endingRef.value = "special";
+  if (endingRef) endingRef.value = "special";
+  if (typeof setGameCleared === "function") setGameCleared(true);
 }
 
-// マップ進行（最終マップではエンディング分岐）
+// 次のマップへ進む処理
 export function nextMap(state) {
-  const { MAPS, currentMapIndexRef, setStatus, reloadMap, allEnemiesClearedRef } = state;
+  const { MAPS, currentMapIndexRef, setStatus, reloadMap } = state;
 
-  // まだ次のマップがある場合
-  if (currentMapIndexRef.get() + 1 < MAPS.length) {
-    currentMapIndexRef.set(currentMapIndexRef.get() + 1);
-    if (typeof reloadMap === "function") reloadMap(currentMapIndexRef.get());
+  if (currentMapIndexRef.value + 1 < MAPS.length) {
+    // 次マップへ
+    currentMapIndexRef.value++;
+
+    if (typeof reloadMap === "function") reloadMap();
     if (typeof setStatus === "function") {
-      setStatus(`🌍 マップ ${currentMapIndexRef.get() + 1} に移動！`);
+      setStatus(🌍 マップ ${currentMapIndexRef.value + 1} に移動！);
     }
   } else {
-    // 最終マップの場合 → 敵全滅フラグで分岐
-    if (allEnemiesClearedRef && allEnemiesClearedRef.value) {
-      triggerSpecialEnding(state);
-    } else {
-      triggerNormalEnding(state);
-    }
+    // 最終マップを超えた → ノーマルエンディングに移行
+    triggerNormalEnding(state);
   }
 }
 
 // ゲームオーバー判定
 export function checkGameOver(player, setStatus) {
   if (player.hearts <= 0) {
-    if (typeof setStatus === "function") setStatus("💀 ゲームオーバー");
+    if (typeof setStatus === "function") {
+      setStatus("💀 ゲームオーバー");
+    }
     return true;
   }
   return false;
