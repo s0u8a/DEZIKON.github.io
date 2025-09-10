@@ -106,13 +106,14 @@ function resetPlayer() {
 
 // ➡ 次マップへ
 function nextMap() {
-  currentMapIndex++;
-  if (currentMapIndex >= maps.length) {
+  if (currentMapIndex + 1 >= maps.length) {
     setStatus("🎉 全クリア！！");
     if (bgm) bgm.pause();
     gameCleared = true;
     return;
   }
+
+  currentMapIndex++;
   map = maps[currentMapIndex].map(row => [...row]);
   resetPlayer();
   initEnemies(map);
@@ -200,7 +201,7 @@ document.addEventListener("keydown", (e) => {
     if (checkGoal(map, player.x, player.y)) {
       setStatus("🏁 ゴール！");
       nextMap();
-      return;
+      return; // ✅ ここで終了しないと同じマップで再処理される
     }
     onTile(nx, ny);
 
