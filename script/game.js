@@ -1,7 +1,7 @@
 import { maps, tile } from "./map.js";
 import { player, initPlayer, takeDamage, updatePlayer, drawLifeGauge, heal } from "./player.js";
 import { initEnemies, updateEnemies, drawEnemies, removeEnemy, enemies } from "./enemy.js";
-import { checkGoal, checkGameOver } from "./ending.js";
+import { checkGoal, checkGameOver, triggerNormalEnding, triggerSpecialEnding } from "./ending.js";
 import { startEggGame } from "./eggGame.js";
 import { startFishingGame } from "./fishingGame.js";
 import { startNiigataQuiz } from "./niigataquiz.js";          // 🐸 カエル用
@@ -77,6 +77,7 @@ let nearAlly = false;
 let nearFishingAlly = false;
 let gameCleared = false;
 let gameOver = false;
+let endingType = null; // "normal" or "special"
 
 // 🖼 キャンバスリサイズ
 const dpr = window.devicePixelRatio || 1;
@@ -106,13 +107,19 @@ function resetPlayer() {
 
 // ➡ 次マップへ
 function nextMap() {
-  if (currentMapIndex + 1 >= maps.length) {
-    setStatus("🎉 全クリア！！");
-    if (bgm) bgm.pause();
-    gameCleared = true;
+  // 最終マップ到達していたらエンディングへ
+  if (currentMapIndex >= maps.length - 1) {
+    if (enemies.length === 0) {
+      triggerSpecialEnding({ setStatus, bgm, endingRef: { value: endingType }, setGameCleared: (f) => gameCleared = f });
+      endingType = "special";
+    } else {
+      triggerNormalEnding({ setStatus, bgm, endingRef: { value: endingType }, setGameCleared: (f) => gameCleared = f });
+      endingType = "normal";
+    }
     return;
   }
 
+  // 次マップへ進む
   currentMapIndex++;
   map = maps[currentMapIndex].map(row => [...row]);
   resetPlayer();
@@ -146,15 +153,6 @@ function onTile(x, y) {
 
   if (nearAlly) setStatus("🤝 村人がいる！Enterで話しかけてください");
   if (nearFishingAlly) setStatus("🎣 釣り好きの村人がいる！Enterで話しかけてください");
-}
-
-// 🆕 敵全滅チェック
-function checkAllEnemiesCleared() {
-  if (currentMapIndex === 3 && enemies.length === 0 && !gameCleared && !gameOver) {
-    setStatus("🎉 敵を全滅させ、佐渡を鎮めました！");
-    if (bgm) bgm.pause();
-    gameCleared = true;
-  }
 }
 
 // ⌨️ キー操作
@@ -201,7 +199,7 @@ document.addEventListener("keydown", (e) => {
     if (checkGoal(map, player.x, player.y)) {
       setStatus("🏁 ゴール！");
       nextMap();
-      return; // ✅ ここで終了しないと同じマップで再処理される
+      return;
     }
     onTile(nx, ny);
 
@@ -213,31 +211,28 @@ document.addEventListener("keydown", (e) => {
   }
 
   // 敵との接触処理
- updateEnemies(walkable, player, (amt, enemyIndex, type) => {
-  if (type === "normal") {
-    takeDamage(amt, setStatus);
-    removeEnemy(enemyIndex);
-  } else if (type === "frog") {
-    setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
-    startNiigataQuiz((correct) => {
-      if (correct) heal(1, setStatus);
-      else takeDamage(1, setStatus);
-      setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
+  updateEnemies(walkable, player, (amt, enemyIndex, type) => {
+    if (type === "normal") {
+      takeDamage(amt, setStatus);
       removeEnemy(enemyIndex);
-      checkAllEnemiesCleared();
-    });
-  } else if (type === "araiteki") {
-    setStatus("🦝 アライグマに遭遇！高難易度クイズに挑戦！");
-    startNiigataHardQuiz((correct) => {
-      if (correct) heal(1, setStatus);
-      else takeDamage(1, setStatus);
-      setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
-      removeEnemy(enemyIndex);
-      checkAllEnemiesCleared();
-    });
-  }
-  checkAllEnemiesCleared();
-});
+    } else if (type === "frog") {
+      setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
+      startNiigataQuiz((correct) => {
+        if (correct) heal(1, setStatus);
+        else takeDamage(1, setStatus);
+        setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
+        removeEnemy(enemyIndex);
+      });
+    } else if (type === "araiteki") {
+      setStatus("🦝 アライグマに遭遇！高難易度クイズに挑戦！");
+      startNiigataHardQuiz((correct) => {
+        if (correct) heal(1, setStatus);
+        else takeDamage(1, setStatus);
+        setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
+        removeEnemy(enemyIndex);
+      });
+    }
+  });
 
   if (checkGameOver(player, setStatus)) {
     if (bgm) bgm.pause();
@@ -256,6 +251,7 @@ function restartGame() {
   setStatus("🔄 ゲーム再スタート！");
   gameCleared = false;
   gameOver = false;
+  endingType = null;
   if (bgm) {
     bgm.currentTime = 0;
     bgm.play().catch(()=>{});
@@ -268,11 +264,19 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (gameCleared) {
-    ctx.drawImage(images.sadometu, 0, 0, canvas.width / dpr, canvas.height / dpr);
-    ctx.font = "40px sans-serif";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.fillText("🎉 ゲームクリア！", canvas.width / dpr / 2, 50);
+    if (endingType === "special") {
+      ctx.drawImage(images.sadometu, 0, 0, canvas.width / dpr, canvas.height / dpr);
+      ctx.font = "40px sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.fillText("✨ 特殊エンディング！", canvas.width / dpr / 2, 50);
+    } else {
+      ctx.drawImage(images.clear, 0, 0, canvas.width / dpr, canvas.height / dpr);
+      ctx.font = "40px sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.fillText("🎉 ノーマルエンディング！", canvas.width / dpr / 2, 50);
+    }
     return;
   }
 
@@ -296,18 +300,10 @@ function draw() {
       const dy = y * tile;
       const cell = map[y][x];
 
-     // 🆕 床の切り替え（K,X,E）
-      if (cell === "K") {
-        ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // 地下通路床
-      } else if (cell === "X") {
-        ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
-      } else if (cell === "W") {
-        // 🐟 魚のいるマスの床は水面に変更
-        ctx.drawImage(images.wall, dx, dy, tile, tile); 
-      } else {
-        ctx.drawImage(images.floor, dx, dy, tile, tile);
-      }
-      
+      // 床
+      if (cell === "K" || cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
+      else ctx.drawImage(images.floor, dx, dy, tile, tile);
+
       if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
@@ -319,7 +315,7 @@ function draw() {
       }
       if (cell === "E") ctx.drawImage(images.enemy, dx, dy, tile, tile);
       if (cell === "F") ctx.drawImage(images.enemy2, dx, dy, tile, tile);
-      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile); // 🦝 アライグマ
+      if (cell === "H") ctx.drawImage(images.enemy3, dx, dy, tile, tile);
       if (cell === "B") ctx.drawImage(images.bridge, dx, dy, tile, tile);
       if (cell === "T") ctx.drawImage(images.tree, dx, dy, tile, tile);
       if (cell === "M") ctx.drawImage(images.mahouzin, dx, dy, tile, tile);
@@ -358,7 +354,6 @@ window.startGame = function () {
   initEnemies(map);
   resizeCanvas();
 
-  // ゲーム開始専用メッセージ
   setStatus("🌾 マップ1：田んぼエリアに到着！");
 
   if (bgm) {
