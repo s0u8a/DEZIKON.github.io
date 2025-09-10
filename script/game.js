@@ -296,11 +296,18 @@ function draw() {
       const dy = y * tile;
       const cell = map[y][x];
 
-      // 🆕 床の切り替え（K,X）
-      if (cell === "K") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // 地下通路床
-      else if (cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
-      else ctx.drawImage(images.floor, dx, dy, tile, tile);
-
+     // 🆕 床の切り替え（K,X,E）
+      if (cell === "K") {
+        ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // 地下通路床
+      } else if (cell === "X") {
+        ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
+      } else if (cell === "E") {
+        // 🐟 魚のいるマスの床は水面に変更
+        ctx.drawImage(images.wall, dx, dy, tile, tile); 
+      } else {
+        ctx.drawImage(images.floor, dx, dy, tile, tile);
+      }
+      
       if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
