@@ -7,7 +7,7 @@ export function initEnemies(GRID) {
     for (let x = 0; x < GRID[0].length; x++) {
       if (GRID[y][x] === "E") {
         enemies.push({ x, y, dx: 1, dy: 0, type: "normal" });
-        GRID[y][x] = "W";
+        GRID[y][x] = "#";
       } else if (GRID[y][x] === "F") {
         enemies.push({ x, y, dx: 1, dy: 0, type: "frog" });
         GRID[y][x] = "0";
