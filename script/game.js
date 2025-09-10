@@ -301,9 +301,14 @@ function draw() {
       const cell = map[y][x];
 
       // 床
-      if (cell === "K" || cell === "X") ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
-      else ctx.drawImage(images.floor, dx, dy, tile, tile);
-
+      if (cell === "K" || cell === "X") {
+        ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // 地下通路床
+      } else if (cell === "#") {
+        ctx.drawImage(images.wall, dx, dy, tile, tile); // 🆕 水タイル（mizu_big.png）
+      } else {
+        ctx.drawImage(images.floor, dx, dy, tile, tile); // 通常の床
+      }
+      
       if (cell === "#") ctx.drawImage(images.wall, dx, dy, tile, tile);
       if (cell === "W") ctx.drawImage(images.wallSpecial, dx, dy, tile, tile);
       if (cell === "I") ctx.drawImage(images.item, dx, dy, tile, tile);
