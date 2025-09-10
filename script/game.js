@@ -301,7 +301,7 @@ function draw() {
         ctx.drawImage(images.floorSpecial, dx, dy, tile, tile); // 地下通路床
       } else if (cell === "X") {
         ctx.drawImage(images.floorSpecial, dx, dy, tile, tile);
-      } else if (cell === "E") {
+      } else if (cell === "W") {
         // 🐟 魚のいるマスの床は水面に変更
         ctx.drawImage(images.wall, dx, dy, tile, tile); 
       } else {
