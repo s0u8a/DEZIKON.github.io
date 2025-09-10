@@ -135,7 +135,7 @@ function nextMap() {
       setStatus("🌊 マップ2：信濃川の流域に突入！");
       break;
     case 2:
-      setStatus("⛏ マップ4：佐渡金山の地下坑道に潜入！");
+      setStatus("⛏ マップ3：佐渡金山の地下坑道に潜入！");
       break;
     case 3:
       setStatus("⛏ マップ4：佐渡金山の地下坑道に潜入！");
