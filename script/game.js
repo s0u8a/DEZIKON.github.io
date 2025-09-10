@@ -213,31 +213,31 @@ document.addEventListener("keydown", (e) => {
   }
 
   // 敵との接触処理
-  updateEnemies(walkable, player, (amt, enemyIndex, type) => {
-    if (type === "normal") {
-      takeDamage(amt, setStatus);
+ updateEnemies(walkable, player, (amt, enemyIndex, type) => {
+  if (type === "normal") {
+    takeDamage(amt, setStatus);
+    removeEnemy(enemyIndex);
+  } else if (type === "frog") {
+    setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
+    startNiigataQuiz((correct) => {
+      if (correct) heal(1, setStatus);
+      else takeDamage(1, setStatus);
+      setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
       removeEnemy(enemyIndex);
-    } else if (type === "frog") {
-      setStatus("🐸 カエルに遭遇！新潟クイズに挑戦！");
-      startNiigataQuiz((correct) => {
-        if (correct) heal(1, setStatus);
-        else takeDamage(1, setStatus);
-        setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
-        removeEnemy(enemyIndex);
-        checkAllEnemiesCleared();
-      });
-    } else if (type === "araiteki") {
-      setStatus("🦝 アライグマに遭遇！高難易度クイズに挑戦！");
-      startNiigataHardQuiz((correct) => {
-        if (correct) heal(1, setStatus);
-        else takeDamage(1, setStatus);
-        setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
-        removeEnemy(enemyIndex);
-        checkAllEnemiesCleared();
-      });
-    }
-    checkAllEnemiesCleared();
-  });
+      checkAllEnemiesCleared();
+    });
+  } else if (type === "araiteki") {
+    setStatus("🦝 アライグマに遭遇！高難易度クイズに挑戦！");
+    startNiigataHardQuiz((correct) => {
+      if (correct) heal(1, setStatus);
+      else takeDamage(1, setStatus);
+      setStatus(correct ? "⭕ 正解！HP回復！" : "❌ 不正解！HP減少");
+      removeEnemy(enemyIndex);
+      checkAllEnemiesCleared();
+    });
+  }
+  checkAllEnemiesCleared();
+});
 
   if (checkGameOver(player, setStatus)) {
     if (bgm) bgm.pause();
